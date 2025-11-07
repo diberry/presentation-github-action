@@ -50,8 +50,6 @@
 
   "postCreateCommand": "bash .devcontainers/post-create.sh",
 
-  "forwardPorts": [3000, 8080, 9000],
-
   "portsAttributes": {
     "3000": {
       "label": "Application Server",

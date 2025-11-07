@@ -1,5 +1,6 @@
 #!/bin/bash
-
+# 2025/11/07
+set -e
 echo "🚀 Setting up GitHub Actions Development Environment..."
 
 # Ensure Docker is available
