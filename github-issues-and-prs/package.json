@@ -1,0 +1,18 @@
+{
+    "name": "github-issues-prs",
+    "version": "1.0.0",
+    "description": "Fetch GitHub issues and PRs from the last 7 days",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "start": "node user-activity.js && node repo-activity.js",
+
+        "user:dev": "node --env-file .env user-activity.js",
+        "repo:dev": "node --env-file .env repo-activity.js",
+        "repo:dev:demo": "node --env-file .env repo-activity.js Azure-Samples/azure-typescript-e2e-apps Azure-Samples/azure-sdk-for-js-docs",
+        "dev:all": "npm run user:dev && npm run repo:dev:demo"
+    },
+    "dependencies": {
+        "@octokit/rest": "^20.0.2"
+    }
+}

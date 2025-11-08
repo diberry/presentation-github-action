@@ -1,207 +1,43 @@
 name: Enhanced Hello World
-# 2025/11/07 
+# 2025/11/07
 on:
   # Manual trigger with inputs
   workflow_dispatch:
     inputs:
-      greeting_name:
-        description: 'Name to greet'
-        required: true
-        default: 'World'
-      report_format:
-        description: 'Output report format'
-        type: choice
-        options: ['markdown', 'text', 'json']
-        default: 'markdown'
-      include_system_info:
-        description: 'Include system information'
-        type: boolean
-        default: true
-  
-  # Push trigger
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/enhanced-hello-world.yml'
-  
+      repos:
+        description: "Comma-separated list of repos (e.g., owner/repo1,owner/repo2) with correct capitalization of owners and repositories"
+        required: false
+        #default: "Azure-Samples/azure-typescript-e2e-apps"
+
   # Schedule trigger (every Monday at 9 AM UTC)
   schedule:
-    - cron: '0 9 * * 1'
+    - cron: "0 9 * * 1"
 
 jobs:
   enhanced-hello:
     runs-on: ubuntu-latest
-    
-    env:
-      # Environment variables available to all steps
-      WORKFLOW_NAME: "Enhanced Hello World"
-      TIMESTAMP: ${{ github.event.head_commit.timestamp || github.run_started_at }}
-    
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Display trigger information
-        run: |
-          echo "🎯 Workflow Trigger Information"
-          echo "================================"
-          echo "Event name: ${{ github.event_name }}"
-          echo "Triggered by: ${{ github.actor }}"
-          echo "Repository: ${{ github.repository }}"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Commit SHA: ${{ github.sha }}"
-          echo "Runner OS: ${{ runner.os }}"
-          echo "Timestamp: $TIMESTAMP"
-      
-      - name: Process workflow inputs
-        run: |
-          echo "📥 Processing Inputs"
-          echo "==================="
-          
-          # Handle different trigger types
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "Manual trigger detected"
-            echo "Greeting name: ${{ github.event.inputs.greeting_name }}"
-            echo "Report format: ${{ github.event.inputs.report_format }}"
-            echo "Include system info: ${{ github.event.inputs.include_system_info }}"
-          elif [ "${{ github.event_name }}" = "push" ]; then
-            echo "Push trigger detected"
-            echo "Commit message: ${{ github.event.head_commit.message }}"
-          elif [ "${{ github.event_name }}" = "schedule" ]; then
-            echo "Scheduled trigger detected"
-            echo "This is the weekly automated run"
-          fi
-      
-      - name: Generate greeting
-        run: |
-          NAME="${{ github.event.inputs.greeting_name || 'Automated Process' }}"
-          echo "👋 Hello, $NAME! 🎉"
-          echo "Welcome to GitHub Actions automation!"
-      
-      - name: Collect system information
-        if: github.event.inputs.include_system_info != 'false'
-        run: |
-          echo "💻 System Information"
-          echo "===================="
-          echo "Hostname: $(hostname)"
-          echo "Current date: $(date)"
-          echo "Working directory: $(pwd)"
-          echo "Disk usage: $(df -h . | tail -1 | awk '{print $4 " available"}')"
-          echo "Memory info: $(free -h | grep Mem | awk '{print $4 " available"}')"
-          echo "CPU info: $(nproc) cores"
-      
-      - name: Generate report artifact
-        run: |
-          REPORT_FORMAT="${{ github.event.inputs.report_format || 'markdown' }}"
-          REPORT_NAME="workflow-report-${{ github.run_number }}"
-          
-          if [ "$REPORT_FORMAT" = "markdown" ]; then
-            cat > ${REPORT_NAME}.md << 'EOF'
-          # Enhanced Hello World Report
-          
-          ## Execution Details
-          - **Workflow**: ${{ env.WORKFLOW_NAME }}
-          - **Run Number**: ${{ github.run_number }}
-          - **Triggered By**: ${{ github.actor }}
-          - **Event**: ${{ github.event_name }}
-          - **Repository**: ${{ github.repository }}
-          - **Branch**: ${{ github.ref_name }}
-          - **Commit**: ${{ github.sha }}
-          - **Runner**: ${{ runner.os }}
-          
-          ## Status
-          ✅ Workflow completed successfully!
-          
-          ## Timestamp
-          Generated: $(date)
-          EOF
-          elif [ "$REPORT_FORMAT" = "json" ]; then
-            cat > ${REPORT_NAME}.json << EOF
-          {
-            "workflow": "${{ env.WORKFLOW_NAME }}",
-            "run_number": ${{ github.run_number }},
-            "triggered_by": "${{ github.actor }}",
-            "event": "${{ github.event_name }}",
-            "repository": "${{ github.repository }}",
-            "branch": "${{ github.ref_name }}",
-            "commit": "${{ github.sha }}",
-            "runner": "${{ runner.os }}",
-            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "status": "success"
-          }
-          EOF
-          else
-            cat > ${REPORT_NAME}.txt << EOF
-          Enhanced Hello World Report
-          ===========================
-          
-          Workflow: ${{ env.WORKFLOW_NAME }}
-          Run Number: ${{ github.run_number }}
-          Triggered By: ${{ github.actor }}
-          Event: ${{ github.event_name }}
-          Repository: ${{ github.repository }}
-          Branch: ${{ github.ref_name }}
-          Commit: ${{ github.sha }}
-          Runner: ${{ runner.os }}
-          
-          Status: SUCCESS
-          Generated: $(date)
-          EOF
-          fi
-          
-          echo "📄 Report generated: ${REPORT_NAME}.${REPORT_FORMAT}"
-          ls -lh ${REPORT_NAME}.*
-      
-      - name: Upload report artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v6
         with:
-          name: workflow-report-${{ github.run_number }}
-          path: workflow-report-${{ github.run_number }}.*
-          retention-days: 30
-      
-      - name: Create workflow step summary
-        run: |
-          echo "## 🎯 Enhanced Hello World Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Execution Details" >> $GITHUB_STEP_SUMMARY
-          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **Workflow** | ${{ env.WORKFLOW_NAME }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Run Number** | #${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Triggered By** | @${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Event Type** | \`${{ github.event_name }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Repository** | ${{ github.repository }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Branch** | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Runner OS** | ${{ runner.os }} |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "### 📥 User Inputs" >> $GITHUB_STEP_SUMMARY
-            echo "- **Greeting Name**: ${{ github.event.inputs.greeting_name }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **Report Format**: ${{ github.event.inputs.report_format }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **Include System Info**: ${{ github.event.inputs.include_system_info }}" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          echo "### 📊 Output Generated" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Workflow logs available in console output" >> $GITHUB_STEP_SUMMARY
-          echo "- 📄 Report artifact: \`workflow-report-${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- 📋 This summary provides quick overview" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "*Generated: $(date)*" >> $GITHUB_STEP_SUMMARY
-      
-      - name: Demonstrate secret usage (safe)
+          node-version: "lts/*"
+
+      - name: Activity check
+        working-directory: github-issues-and-prs
         env:
-          DEMO_SECRET: ${{ secrets.DEMO_SECRET || 'not-configured' }}
+          GITHUB_TOKEN: ${{ secrets.WEEKLYINFO_GITHUB_TOKEN }}
         run: |
-          echo "🔐 Secret Configuration Status"
-          echo "=============================="
-          if [ "$DEMO_SECRET" != "not-configured" ]; then
-            echo "✅ DEMO_SECRET is configured"
-            echo "First 4 characters: ${DEMO_SECRET:0:4}****"
-          else
-            echo "⚠️  DEMO_SECRET is not configured in repository secrets"
-            echo "This is optional for the demo"
-          fi
+          npm install
+          DATE=$(date +%Y-%m-%d)
+          npm run start > ../activity-${DATE}-${{ github.run_number }}.txt 2>&1
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: activity-report-${{ github.run_number }}
+          path: activity-*.txt
+          retention-days: 30
