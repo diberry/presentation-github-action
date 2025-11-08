@@ -24,6 +24,8 @@ Title: Automating with GitHub Actions
 **Script:**
 "Today we're going to explore how we can transform our one-off scripts into powerful, shareable tools that our entire organization can use. We'll start with the current developer experience landscape and show you how to build automation that's both free and accessible to everyone on your team."
 
+**Time: 1 minute**
+
 ---
 
 ## Slide 2: The Current Developer Experience Landscape
@@ -68,6 +70,8 @@ Title: Automating with GitHub Actions
 **Script:**
 "We work with four distinct categories of tools in our development ecosystem. First, our local developer experience tools - VS Code, Dev Containers, and Docker CLI for day-to-day coding. Second, our DevOps and deployment tools like Azure CLI, Bicep, and Terraform that handle infrastructure and production deployments. Third, and critically important, our source control and automation platforms - GitHub Actions, Azure DevOps, and Git itself - these are the orchestration layer that connects everything together. Finally, we have the broader Microsoft ecosystem tools like .NET CLI and Microsoft Graph CLI that connect us to enterprise services. Here's the challenge: while these tools are powerful individually, the scripts we create to connect them across categories typically stay trapped on our local machines. GitHub Actions changes this by providing a cloud-native automation platform that can orchestrate workflows spanning all four categories."
 
+**Time: 2 minutes**
+
 ---
 
 ## Slide 3: The Script-to-Solution Journey
@@ -87,6 +91,8 @@ Platform Options:
 **Script:**
 "There's a natural progression in how we solve problems. We start with a quick script to solve our immediate need. Then colleagues ask for it, so we put it in a personal GitHub repository where others can access it. Eventually, we realize this should be available to the whole team or organization through proper automation. GitHub Actions bridges this gap perfectly. Now, for Microsoft teams, we have two paths: public GitHub for open-source work, and GitHub inside Microsoft - aka.ms/gim - for proprietary code and automation that shouldn't be public. While GiM requires authentication and takes a bit more setup time using Start Right (aka.ms/startright), it conforms to our governance and security requirements. This means you can automate sensitive workflows like internal metrics, proprietary deployment processes, or customer data handling while maintaining compliance. The automation principles we'll cover today work the same way on both platforms."
 
+**Time: 2 minutes**
+
 ---
 
 ## Slide 4: GitHub Actions - The Free Automation Platform
@@ -100,6 +106,8 @@ Platform Options:
 
 **Script:**
 "GitHub Actions gives us enterprise-grade automation capabilities with zero infrastructure overhead. The free tier is generous enough for most team automation needs, and since it's integrated with GitHub, your team already has access. You don't need Azure DevOps or Azure Hosting to get started - if your code is in GitHub, you can start automating today."
+
+**Time: 1 minute**
 
 ---
 
@@ -147,6 +155,8 @@ Platform Options:
 **Script:**
 "The beauty of GitHub Actions is its versatility - you can automate virtually anything you can run from a command line. Whether you're working with traditional scripting languages like Bash and PowerShell, modern applications in .NET, Go, or Python, or orchestrating complex workflows with CLI tools like Azure CLI and Terraform, GitHub Actions provides the runtime environment. But here's where it gets really powerful - the GitHub Actions Marketplace has over 20,000 pre-built actions covering everything from cloud deployments to security scanning. And if you need something specific, you can create custom actions using JavaScript for speed, Docker for maximum flexibility, or composite actions to package common workflow patterns. This means you're not just limited to what you can script - you're tapping into an entire ecosystem of automation building blocks."
 
+**Time: 2 minutes**
+
 ---
 
 ## Slide 6: From Local Scripts to Automation
@@ -185,6 +195,8 @@ gh pr list --state open --limit 5
 
 **Script:**
 "Let's say you have a script that checks for new issues and pull requests on your content repositories. The local approach has real benefits - it's quick to create, gives you full control, and works with your existing tools. But automation brings different advantages: consistent execution without human error, team accessibility so everyone benefits, and the ability to scale beyond what manual processes can handle. This is where automation transforms reactive monitoring into proactive team awareness that scales across your organization."
+
+**Time: 2 minutes**
 
 ---
 
@@ -231,6 +243,8 @@ jobs:
 
 **Script:**
 "Before we dive into creating our first workflow, let's understand what makes GitHub Actions so powerful. This isn't just a simple script runner - it's a complete automation platform built into GitHub's infrastructure. The beauty is that it works where your code already lives, with zero additional infrastructure to manage. Whether you're automating a simple task or building complex deployment pipelines, the same foundational concepts apply. This architecture means you can start with a simple 'Hello World' workflow and gradually build up to sophisticated automation that serves your entire organization."
+
+**Time: 3 minutes**
 
 ---
 
@@ -330,768 +344,422 @@ Branch: main
 **Script:**
 "Before we dive deeper, let's create our first GitHub Action together. This 'Hello World' example will show you the basic structure and give you hands-on experience with the VS Code GitHub Actions extension. The extension is invaluable - it provides syntax highlighting, IntelliSense for GitHub Actions properties, and real-time validation that catches errors before you commit. Notice how we're using `workflow_dispatch` as a trigger - this allows us to run the action manually, which is perfect for testing. The `${{ }}` syntax gives us access to GitHub's context variables, so we can access information about the repository, runner, and current execution. This simple example demonstrates the foundation that all GitHub Actions build upon - you define jobs, specify where they run, and list the steps to execute."
 
----
-
-## Slide 9: Workflows vs Actions - Understanding the Architecture
-**Visual:** Side-by-side comparison diagram showing workflows calling actions
-
-### The Fundamental Difference
-
-#### **Workflows** (`.github/workflows/`)
-- **What:** Complete automated processes that GitHub automatically discovers and runs
-- **File format:** YAML files (`.yml` or `.yaml`)
-- **Purpose:** Define when, where, and how automation runs
-- **Trigger:** Events (push, PR, manual, schedule, etc.)
-- **Visibility:** Automatically appear in GitHub Actions tab
-- **Analogy:** The "main program" that executes automatically
-
-#### **Actions** (`.github/actions/`)
-- **What:** Reusable building blocks that workflows can call
-- **File format:** `action.yml` in a subfolder
-- **Purpose:** Encapsulate reusable logic that multiple workflows can share
-- **Trigger:** Explicitly called by workflows using `uses:` keyword
-- **Visibility:** Not discovered automatically - must be referenced
-- **Analogy:** A "function" or "library" that workflows invoke
-
-### The Relationship in Practice
-
-```
-Repository Structure:
-.github/
-├── workflows/           ← GitHub scans here automatically
-│   ├── deploy.yml      ← Workflow: "Deploy to production"
-│   ├── test.yml        ← Workflow: "Run tests"
-│   └── lint.yml        ← Workflow: "Lint codebase"
-└── actions/             ← Custom reusable actions
-    └── setup-env/       ← Action: "Setup environment"
-        └── action.yml   ← Action definition
-```
-
-### Why Use Both?
-
-#### **Workflows Define:**
-- **When** automation runs (triggers)
-- **Where** it runs (runner configuration)
-- **Overall** orchestration and flow
-
-#### **Actions Provide:**
-- **Reusable** logic across multiple workflows
-- **Encapsulation** of complex operations
-- **Modularity** for cleaner workflow files
-
-### Critical Execution Context Differences
-
-#### **Workflows: Simpler Execution Context**
-```yaml
-# .github/workflows/deploy.yml
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      # Now working in repository root: /home/runner/work/repo-name/repo-name
-      
-      - name: Run script from repository
-        run: ./scripts/build.sh  # ✅ Works! Relative to repository root
-      
-      - name: Access repository files
-        run: |
-          ls -la                    # ✅ Shows repository contents
-          cat ./config/app.json     # ✅ Direct access to repository files
-```
-
-**Why workflows are simpler:**
-- **Automatic context:** `actions/checkout` establishes repository root as working directory
-- **Predictable paths:** All scripts and files use paths relative to repository root
-- **Simple debugging:** What you see in your repository is where execution happens
-- **No surprises:** Standard shell behavior applies
-
-#### **Composite Actions: Complex Execution Context**
-```yaml
-# .github/actions/deploy-app/action.yml
-name: Deploy Application
-runs:
-  using: composite
-  steps:
-    - name: Run deployment script
-      shell: bash
-      run: |
-        # ⚠️ PROBLEM: Where am I executing from?
-        # Working directory is NOT necessarily the repository root
-        # It's wherever the calling workflow's current step is executing
-        
-        # ❌ This might fail if path resolution is unclear
-        ./scripts/deploy.sh
-        
-        # ✅ Better: Use GITHUB_ACTION_PATH for action-relative files
-        ${GITHUB_ACTION_PATH}/deploy.sh
-        
-        # ✅ Or use GITHUB_WORKSPACE for repository files
-        ${GITHUB_WORKSPACE}/scripts/deploy.sh
-```
-
-**Why composite actions are trickier:**
-- **Multiple context layers:** Action files vs. repository files vs. workflow context
-- **Path resolution complexity:** 
-  - `$GITHUB_ACTION_PATH` - Path to the action's folder (`.github/actions/action-name`)
-  - `$GITHUB_WORKSPACE` - Repository root (same as after checkout)
-  - `${{ github.action_path }}` - Same as GITHUB_ACTION_PATH but in YAML expressions
-- **Working directory varies:** Depends on where the calling workflow step executes
-- **Checkout dependency:** Action may or may not have access to repository files
-
-#### **Real-World Example: Script Execution**
-
-**Workflow (Simple):**
-```yaml
-# .github/workflows/build.yml
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Build application
-        run: |
-          chmod +x ./scripts/build.sh
-          ./scripts/build.sh            # ✅ Works! Repository root context
-```
-
-**Composite Action (Complex):**
-```yaml
-# .github/actions/build-app/action.yml
-name: Build Application
-runs:
-  using: composite
-  steps:
-    - name: Build application
-      shell: bash
-      run: |
-        # ❌ WRONG: Assumes we're in repository root
-        # ./scripts/build.sh
-        
-        # ✅ CORRECT: Explicitly reference repository root
-        chmod +x ${GITHUB_WORKSPACE}/scripts/build.sh
-        ${GITHUB_WORKSPACE}/scripts/build.sh
-        
-        # OR if script is part of the action itself:
-        chmod +x ${GITHUB_ACTION_PATH}/build-internal.sh
-        ${GITHUB_ACTION_PATH}/build-internal.sh
-```
-
-#### **Path Resolution Rules for Composite Actions**
-
-**Rule 1: Action-Relative Files**
-Use `$GITHUB_ACTION_PATH` for files stored with the action:
-```yaml
-# .github/actions/deploy/action.yml
-runs:
-  using: composite
-  steps:
-    - name: Run action's internal script
-      shell: bash
-      run: ${GITHUB_ACTION_PATH}/scripts/internal-deploy.sh
-
-# Directory structure:
-# .github/actions/deploy/
-#   ├── action.yml
-#   └── scripts/
-#       └── internal-deploy.sh  ← Accessed via GITHUB_ACTION_PATH
-```
-
-**Rule 2: Repository Files**
-Use `$GITHUB_WORKSPACE` for repository files (requires checkout):
-```yaml
-# .github/actions/validate/action.yml
-runs:
-  using: composite
-  steps:
-    - name: Validate repository configuration
-      shell: bash
-      run: |
-        # Repository must be checked out first
-        cat ${GITHUB_WORKSPACE}/config/app.json
-        ${GITHUB_WORKSPACE}/scripts/validate.sh
-```
-
-**Rule 3: Calling Workflow Must Checkout**
-Composite actions don't automatically check out code:
-```yaml
-# .github/workflows/ci.yml
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      # ✅ REQUIRED: Checkout before calling action that needs repository files
-      - uses: actions/checkout@v4
-      
-      - uses: ./.github/actions/validate
-        # Action can now access $GITHUB_WORKSPACE files
-```
-
-#### **Common Pitfalls and Solutions**
-
-**Pitfall 1: Assuming Repository Context**
-```yaml
-# ❌ BAD: Composite action assumes it's in repository root
-runs:
-  using: composite
-  steps:
-    - run: ./scripts/build.sh  # May fail - unclear context
-      shell: bash
-
-# ✅ GOOD: Explicitly specify context
-runs:
-  using: composite
-  steps:
-    - run: ${GITHUB_WORKSPACE}/scripts/build.sh
-      shell: bash
-```
-
-**Pitfall 2: Missing Checkout in Workflow**
-```yaml
-# ❌ BAD: Calling composite action without checkout
-jobs:
-  build:
-    steps:
-      - uses: ./.github/actions/build  # ❌ Fails! Repository not available
-
-# ✅ GOOD: Checkout before calling action
-jobs:
-  build:
-    steps:
-      - uses: actions/checkout@v4      # ✅ Repository now available
-      - uses: ./.github/actions/build
-```
-
-**Pitfall 3: Mixing Action and Repository Files**
-```yaml
-# ❌ CONFUSING: Unclear which path is which
-runs:
-  using: composite
-  steps:
-    - run: ./helper.sh          # Is this action's file or repository's?
-      shell: bash
-
-# ✅ CLEAR: Explicit about file locations
-runs:
-  using: composite
-  steps:
-    - name: Run action's helper
-      run: ${GITHUB_ACTION_PATH}/helper.sh
-      shell: bash
-    
-    - name: Run repository's build script
-      run: ${GITHUB_WORKSPACE}/scripts/build.sh
-      shell: bash
-```
-
-#### **Best Practices for Composite Actions**
-
-1. **Always use explicit paths:**
-   - `$GITHUB_ACTION_PATH` for action's own files
-   - `$GITHUB_WORKSPACE` for repository files
-   - Never rely on relative paths like `./`
-
-2. **Document checkout requirement:**
-   ```yaml
-   # .github/actions/deploy/action.yml
-   name: Deploy Application
-   description: |
-     Deploys the application to Azure.
-     REQUIRES: Repository must be checked out before calling this action.
-   ```
-
-3. **Validate context in action:**
-   ```yaml
-   runs:
-     using: composite
-     steps:
-       - name: Validate repository checkout
-         shell: bash
-         run: |
-           if [ ! -f "${GITHUB_WORKSPACE}/package.json" ]; then
-             echo "❌ ERROR: Repository not checked out!"
-             echo "Add 'uses: actions/checkout@v4' before calling this action"
-             exit 1
-           fi
-   ```
-
-4. **Prefer inputs over file access:**
-   ```yaml
-   # Better: Pass data as inputs rather than reading files
-   inputs:
-     app-name:
-       description: 'Application name'
-       required: true
-   runs:
-     using: composite
-     steps:
-       - run: echo "Deploying ${{ inputs.app-name }}"
-         shell: bash
-   ```
-
-**Key Insight:** Workflows benefit from automatic repository context after checkout, making path resolution straightforward. Composite actions require explicit path handling because they operate in a more complex, layered execution context where the relationship between action files, repository files, and working directory must be explicitly managed.
-
-### Common Patterns
-
-#### **Pattern 1: Workflow Only** (Simple scenarios)
-```yaml
-# .github/workflows/simple.yml
-name: Simple Workflow
-on: push
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: npm install
-      - run: npm test
-```
-
-#### **Pattern 2: Workflow + Custom Action** (Reusable logic)
-```yaml
-# .github/workflows/complex.yml
-name: Complex Workflow
-on: push
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-env  # Custom action
-      - run: npm test
-
-# .github/actions/setup-env/action.yml
-name: Setup Environment
-description: Configure Node.js and install dependencies
-runs:
-  using: composite
-  steps:
-    - uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-    - run: npm install
-      shell: bash
-```
-
-#### **Pattern 3: Multiple Workflows + Shared Action** (DRY principle)
-```yaml
-# .github/workflows/deploy-staging.yml
-- uses: ./.github/actions/deploy
-  with:
-    environment: staging
-
-# .github/workflows/deploy-production.yml
-- uses: ./.github/actions/deploy
-  with:
-    environment: production
-
-# .github/actions/deploy/action.yml (shared logic)
-```
-
-### Action Sources
-
-#### **Three Ways to Use Actions:**
-1. **GitHub Marketplace:** `uses: actions/checkout@v4`
-2. **Same Repository:** `uses: ./.github/actions/my-action`
-3. **Other Repository:** `uses: owner/repo/.github/actions/action-name@v1`
-
-### When to Create Custom Actions
-
-#### **Good Candidates:**
-- Logic repeated across multiple workflows
-- Complex operations that obscure workflow intent
-- Steps that need versioning and testing independently
-- Functionality you want to share across repositories
-
-#### **Keep in Workflows When:**
-- Simple, one-time operations
-- Workflow-specific logic
-- Quick prototyping and iteration
-
-### Real-World Example
-
-```yaml
-# .github/workflows/content-validation.yml
-name: Validate Documentation
-on: pull_request
-
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      # Custom action: Reusable validation logic
-      - uses: ./.github/actions/fuzzy-search
-        with:
-          search-terms: 'TODO,FIXME,HACK'
-          file-extensions: '.md,.yml'
-          
-      # Workflow-specific step
-      - name: Post PR comment
-        run: |
-          gh pr comment ${{ github.event.pull_request.number }} \
-            --body "Validation complete! Check artifacts for results."
-```
-
-**Script:**
-"Let's clarify a common source of confusion - the difference between workflows and actions. Think of workflows as your main programs - they're complete automation processes that GitHub automatically discovers in the workflows folder. They define when automation runs, what triggers it, and orchestrate the overall flow. Actions, on the other hand, are reusable building blocks - like functions in programming. They live in the actions folder and are NOT automatically discovered. Workflows explicitly call actions using the 'uses' keyword. Here's why this matters: if you have logic that multiple workflows need - like setting up an environment, performing a fuzzy search, or deploying to different environments - you create a custom action. This follows the DRY principle and makes your workflows cleaner and more maintainable. You can use actions from three sources: GitHub Marketplace for common operations, custom actions in your own repository for project-specific logic, or actions from other repositories for shared team functionality. The key insight is that workflows are the orchestrators, and actions are the reusable components they orchestrate."
+**Time: 5-7 minutes**
 
 ---
 
-## Slide 10: DEMO - Workflows and Actions Working Together
-**Demo Summary:** Simple hello world showing workflow calling a custom action
 
-### Demo Overview
-This demo demonstrates the relationship between workflows and actions with a minimal example - a workflow that calls a custom action to generate personalized greetings.
+## Slide 9: GitHub Actions Architecture - Triggers, Inputs, and Outputs
+**Visual:** Flow diagram showing the complete GitHub Actions data flow
 
-### Repository Structure
-```
-.github/
-├── workflows/
-│   └── greeting-workflow.yml    ← The workflow (automatically discovered)
-└── actions/
-    └── generate-greeting/
-        └── action.yml           ← The custom action (called by workflow)
-```
+### Understanding the GitHub Actions Pipeline
 
-### Step 1: Create the Custom Action
+GitHub Actions workflows follow a clear Input → Processing → Output pattern. Understanding these three components is essential for building effective automation.
 
-**File:** `.github/actions/generate-greeting/action.yml`
+---
+
+### 🎯 TRIGGERS (When workflows run)
+
+**Top 5 Most Common Triggers:**
+1. **`workflow_dispatch`**: Manual trigger with input parameters - perfect for on-demand automation
+2. **`push`**: Code pushed to specific branches - automatic CI/CD on commits
+3. **`pull_request`**: PR opened or updated - automated code review and testing
+4. **`schedule`**: Cron-based scheduled execution - recurring maintenance tasks
+   ```yaml
+   schedule:
+     - cron: '0 8 * * 1'  # Every Monday at 8 AM UTC
+   ```
+5. **`workflow_call`**: Called by other workflows - reusable workflow components
+
+**[See full trigger list in Appendix B](#appendix-b-complete-triggers-reference)**
+
+---
+
+### 📥 INPUTS (What workflows receive)
+
+**Top 5 Essential Input Types:**
+1. **Workflow dispatch inputs**: User-provided parameters for manual triggers
+   - Types: `string`, `boolean`, `choice`, `environment`
+2. **Repository secrets**: Encrypted credentials (`secrets.API_KEY`, `secrets.GITHUB_TOKEN`)
+   - Scoped to repository, environment, or organization
+3. **Environment variables**: Configuration values available to jobs and steps
+   - Job-level: `env:` at job level
+   - Step-level: `env:` at step level
+4. **GitHub context**: Built-in variables about the workflow execution
+   - `github.repository`, `github.actor`, `github.sha`, `github.ref`
+5. **Checkout data**: Repository files via `actions/checkout@v4`
+   - Access to code, config files, and repository content
+
+**[See full inputs reference in Appendix B](#appendix-b-complete-inputs-reference)**
+
+---
+
+### 📤 OUTPUTS (What workflows produce)
+
+**Top 5 Valuable Output Types:**
+1. **Step Summary**: Rich markdown display in Actions UI (`$GITHUB_STEP_SUMMARY`)
+   - Visible without digging through logs
+   - Tables, lists, code blocks, images
+2. **Artifacts**: Downloadable files and reports (`actions/upload-artifact@v4`)
+   - Build outputs, test results, generated files
+   - 90-day retention (customizable)
+3. **Console Logs**: Real-time execution output
+   - Standard output, error messages, debug info
+4. **Repository changes**: Automated commits, PRs, releases
+   - Update code, documentation, configurations
+5. **External integrations**: Notifications and deployments
+   - Teams/Slack notifications, cloud deployments, API calls
+
+**[See full outputs reference in Appendix B](#appendix-b-complete-outputs-reference)**
+
+---
+
+### Architecture Flow Example
+
 ```yaml
-name: Generate Greeting
-description: Creates a personalized greeting message
-inputs:
-  name:
-    description: 'Name to greet'
-    required: true
-    default: 'World'
-  style:
-    description: 'Greeting style: casual, formal, or enthusiastic'
-    required: false
-    default: 'casual'
-outputs:
-  greeting:
-    description: 'The generated greeting message'
-    value: ${{ steps.generate.outputs.greeting }}
-
-runs:
-  using: composite
-  steps:
-    - name: Generate greeting message
-      id: generate
-      shell: bash
-      run: |
-        NAME="${{ inputs.name }}"
-        STYLE="${{ inputs.style }}"
-        
-        case $STYLE in
-          formal)
-            GREETING="Good day, ${NAME}. It is a pleasure to meet you."
-            ;;
-          enthusiastic)
-            GREETING="Hello, ${NAME}! 🎉 So excited to see you!"
-            ;;
-          casual|*)
-            GREETING="Hey ${NAME}, how's it going?"
-            ;;
-        esac
-        
-        echo "greeting=$GREETING" >> $GITHUB_OUTPUT
-        echo "✅ Generated greeting: $GREETING"
-```
-
-### Step 2: Create the Workflow That Uses the Action
-
-**File:** `.github/workflows/greeting-workflow.yml`
-```yaml
-name: Greeting Workflow Demo
-
+# TRIGGERS
 on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 9 * * 1-5'  # Weekdays at 9 AM
   workflow_dispatch:
     inputs:
-      person_name:
-        description: 'Who should we greet?'
-        required: true
-        default: 'GitHub Actions User'
-      greeting_style:
-        description: 'Greeting style'
-        required: true
+      environment:
         type: choice
-        options:
-          - casual
-          - formal
-          - enthusiastic
-        default: 'casual'
+        options: [dev, staging, prod]
 
 jobs:
-  greet-person:
+  process:
     runs-on: ubuntu-latest
+    
+    # INPUTS
+    env:
+      DEPLOY_ENV: ${{ github.event.inputs.environment || 'dev' }}
+      API_KEY: ${{ secrets.API_KEY }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Process with inputs
+        run: |
+          echo "Environment: $DEPLOY_ENV"
+          echo "Triggered by: ${{ github.actor }}"
+      
+      # OUTPUTS
+      - name: Generate artifact
+        run: echo "Build complete" > result.txt
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-result
+          path: result.txt
+      
+      - name: Create step summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Environment: $DEPLOY_ENV" >> $GITHUB_STEP_SUMMARY
+```
+
+### Key Resources
+- **Official Documentation**: [GitHub Actions Triggers](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows)
+- **Context Variables**: [GitHub Actions Contexts](https://docs.github.com/en/actions/learn-github-actions/contexts)
+- **Complete Reference**: See Appendix B for comprehensive lists
+
+**Script:**
+"Before we jump into a practical demo, let's understand the three fundamental components of every GitHub Actions workflow: triggers, inputs, and outputs. I'm showing you the top five most commonly used options in each category - the ones you'll use in 90% of your workflows. Triggers are the 'when' - manual triggers for on-demand tasks, push events for automatic CI/CD, pull requests for code reviews, scheduled runs for maintenance, and reusable workflows for shared components. Inputs are the 'what with' - user parameters, encrypted secrets, environment variables, GitHub's built-in context about the workflow, and your repository's code and files. Outputs are the 'what happens' - step summaries for quick visibility, artifacts for downloadable results, console logs for detailed execution info, repository changes for automation, and external integrations for notifications and deployments. There are many more options available - I've included comprehensive lists in Appendix B and links to the official documentation. But these top five in each category will cover most of your automation needs. Now let's see this in action with a practical demo."
+
+**Time: 4 minutes**
+
+---
+
+## Slide 9 DEMO: Enhanced Hello World with Triggers, Inputs, and Outputs
+**Demo Summary:** Extend the Hello World workflow to demonstrate triggers, inputs, and outputs
+
+### Demo Overview
+We'll enhance our Hello World workflow to showcase practical examples of different triggers, input mechanisms, and output formats. This demonstrates the full power of GitHub Actions architecture.
+
+### Enhanced Workflow
+
+```prompt
+Create an enhanced GitHub Actions workflow that demonstrates:
+- Multiple trigger types: manual (with inputs), push events, and scheduled execution
+- Various input types: workflow inputs, secrets, and environment variables
+- Multiple output formats: artifacts, step summary, and logs
+- Practical use of GitHub context variables
+- Real-world patterns like conditional execution and dynamic naming
+```
+
+```yaml
+name: Enhanced Hello World - Triggers, Inputs & Outputs
+
+on:
+  # Manual trigger with inputs
+  workflow_dispatch:
+    inputs:
+      greeting_name:
+        description: 'Name to greet'
+        required: true
+        default: 'World'
+      report_format:
+        description: 'Output report format'
+        type: choice
+        options: ['markdown', 'text', 'json']
+        default: 'markdown'
+      include_system_info:
+        description: 'Include system information'
+        type: boolean
+        default: true
+  
+  # Push trigger
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/enhanced-hello-world.yml'
+  
+  # Schedule trigger (every Monday at 9 AM UTC)
+  schedule:
+    - cron: '0 9 * * 1'
+
+jobs:
+  enhanced-hello:
+    runs-on: ubuntu-latest
+    
+    env:
+      # Environment variables available to all steps
+      WORKFLOW_NAME: "Enhanced Hello World"
+      TIMESTAMP: ${{ github.event.head_commit.timestamp || github.run_started_at }}
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Call custom greeting action
-        id: greeting
-        uses: ./.github/actions/generate-greeting
-        with:
-          name: ${{ github.event.inputs.person_name }}
-          style: ${{ github.event.inputs.greeting_style }}
+      - name: Display trigger information
+        run: |
+          echo "🎯 Workflow Trigger Information"
+          echo "================================"
+          echo "Event name: ${{ github.event_name }}"
+          echo "Triggered by: ${{ github.actor }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Runner OS: ${{ runner.os }}"
+          echo "Timestamp: $TIMESTAMP"
       
-      - name: Display the greeting
+      - name: Process workflow inputs
         run: |
-          echo "🎯 Action returned: ${{ steps.greeting.outputs.greeting }}"
+          echo "📥 Processing Inputs"
+          echo "==================="
           
-      - name: Create greeting report
+          # Handle different trigger types
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual trigger detected"
+            echo "Greeting name: ${{ github.event.inputs.greeting_name }}"
+            echo "Report format: ${{ github.event.inputs.report_format }}"
+            echo "Include system info: ${{ github.event.inputs.include_system_info }}"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            echo "Push trigger detected"
+            echo "Commit message: ${{ github.event.head_commit.message }}"
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "Scheduled trigger detected"
+            echo "This is the weekly automated run"
+          fi
+      
+      - name: Generate greeting
         run: |
-          echo "# Greeting Report 👋" > greeting-report.md
-          echo "" >> greeting-report.md
-          echo "**Generated:** $(date)" >> greeting-report.md
-          echo "**Person:** ${{ github.event.inputs.person_name }}" >> greeting-report.md
-          echo "**Style:** ${{ github.event.inputs.greeting_style }}" >> greeting-report.md
-          echo "" >> greeting-report.md
-          echo "## Message" >> greeting-report.md
-          echo "${{ steps.greeting.outputs.greeting }}" >> greeting-report.md
+          NAME="${{ github.event.inputs.greeting_name || 'Automated Process' }}"
+          echo "👋 Hello, $NAME! 🎉"
+          echo "Welcome to GitHub Actions automation!"
+      
+      - name: Collect system information
+        if: github.event.inputs.include_system_info != 'false'
+        run: |
+          echo "💻 System Information"
+          echo "===================="
+          echo "Hostname: $(hostname)"
+          echo "Current date: $(date)"
+          echo "Working directory: $(pwd)"
+          echo "Disk usage: $(df -h . | tail -1 | awk '{print $4 " available"}')"
+          echo "Memory info: $(free -h | grep Mem | awk '{print $4 " available"}')"
+          echo "CPU info: $(nproc) cores"
+      
+      - name: Generate report artifact
+        run: |
+          REPORT_FORMAT="${{ github.event.inputs.report_format || 'markdown' }}"
+          REPORT_NAME="workflow-report-${{ github.run_number }}"
           
+          if [ "$REPORT_FORMAT" = "markdown" ]; then
+            cat > ${REPORT_NAME}.md << 'EOF'
+          # Enhanced Hello World Report
+          
+          ## Execution Details
+          - **Workflow**: ${{ env.WORKFLOW_NAME }}
+          - **Run Number**: ${{ github.run_number }}
+          - **Triggered By**: ${{ github.actor }}
+          - **Event**: ${{ github.event_name }}
+          - **Repository**: ${{ github.repository }}
+          - **Branch**: ${{ github.ref_name }}
+          - **Commit**: ${{ github.sha }}
+          - **Runner**: ${{ runner.os }}
+          
+          ## Status
+          ✅ Workflow completed successfully!
+          
+          ## Timestamp
+          Generated: $(date)
+          EOF
+          elif [ "$REPORT_FORMAT" = "json" ]; then
+            cat > ${REPORT_NAME}.json << EOF
+          {
+            "workflow": "${{ env.WORKFLOW_NAME }}",
+            "run_number": ${{ github.run_number }},
+            "triggered_by": "${{ github.actor }}",
+            "event": "${{ github.event_name }}",
+            "repository": "${{ github.repository }}",
+            "branch": "${{ github.ref_name }}",
+            "commit": "${{ github.sha }}",
+            "runner": "${{ runner.os }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "status": "success"
+          }
+          EOF
+          else
+            cat > ${REPORT_NAME}.txt << EOF
+          Enhanced Hello World Report
+          ===========================
+          
+          Workflow: ${{ env.WORKFLOW_NAME }}
+          Run Number: ${{ github.run_number }}
+          Triggered By: ${{ github.actor }}
+          Event: ${{ github.event_name }}
+          Repository: ${{ github.repository }}
+          Branch: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+          Runner: ${{ runner.os }}
+          
+          Status: SUCCESS
+          Generated: $(date)
+          EOF
+          fi
+          
+          echo "📄 Report generated: ${REPORT_NAME}.${REPORT_FORMAT}"
+          ls -lh ${REPORT_NAME}.*
+      
       - name: Upload report artifact
         uses: actions/upload-artifact@v4
         with:
-          name: greeting-report
-          path: greeting-report.md
-          
-      - name: Add to workflow summary
+          name: workflow-report-${{ github.run_number }}
+          path: workflow-report-${{ github.run_number }}.*
+          retention-days: 30
+      
+      - name: Create workflow step summary
         run: |
-          echo "## 👋 Greeting Demo Results" >> $GITHUB_STEP_SUMMARY
+          echo "## 🎯 Enhanced Hello World Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Message:** ${{ steps.greeting.outputs.greeting }}" >> $GITHUB_STEP_SUMMARY
+          echo "### Execution Details" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Workflow** | ${{ env.WORKFLOW_NAME }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Run Number** | #${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Triggered By** | @${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Event Type** | \`${{ github.event_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Repository** | ${{ github.repository }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Runner OS** | ${{ runner.os }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Workflow called custom action successfully!" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "### 📥 User Inputs" >> $GITHUB_STEP_SUMMARY
+            echo "- **Greeting Name**: ${{ github.event.inputs.greeting_name }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Report Format**: ${{ github.event.inputs.report_format }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Include System Info**: ${{ github.event.inputs.include_system_info }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "### 📊 Output Generated" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Workflow logs available in console output" >> $GITHUB_STEP_SUMMARY
+          echo "- 📄 Report artifact: \`workflow-report-${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 📋 This summary provides quick overview" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*Generated: $(date)*" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Demonstrate secret usage (safe)
+        env:
+          DEMO_SECRET: ${{ secrets.DEMO_SECRET || 'not-configured' }}
+        run: |
+          echo "🔐 Secret Configuration Status"
+          echo "=============================="
+          if [ "$DEMO_SECRET" != "not-configured" ]; then
+            echo "✅ DEMO_SECRET is configured"
+            echo "First 4 characters: ${DEMO_SECRET:0:4}****"
+          else
+            echo "⚠️  DEMO_SECRET is not configured in repository secrets"
+            echo "This is optional for the demo"
+          fi
 ```
 
-### Step 3: Test Locally with nektos/act
+### Demo Steps
 
-```bash
-# Run the workflow locally
-act workflow_dispatch \
-  --secret-file .secrets \
-  --input person_name="Local Developer" \
-  --input greeting_style="enthusiastic"
+1. **Create the enhanced workflow file**
+   - Save as `.github/workflows/enhanced-hello-world.yml`
+   - VS Code extension validates syntax automatically
 
-# Or use GitHub Local Actions extension:
-# Ctrl+Shift+P → "GitHub Local Actions: Run Workflow"
-# Select: greeting-workflow.yml
-# Fill in prompts: Name and style
-```
+2. **Test manual trigger with inputs**
+   - Navigate to Actions tab in GitHub
+   - Click "Enhanced Hello World - Triggers, Inputs & Outputs"
+   - Click "Run workflow"
+   - Fill in inputs:
+     - **Greeting name**: "GitHub Actions Team"
+     - **Report format**: "markdown"
+     - **Include system info**: true
+   - Click "Run workflow" button
 
-### Expected Output
+3. **Review outputs**
+   - **Console logs**: Real-time execution output
+   - **Step summary**: Rich formatted summary at bottom of run
+   - **Artifacts**: Download generated report file
 
-```
-[Greeting Workflow Demo/greet-person] 🚀  Start image=ghcr.io/catthehacker/ubuntu:act-latest
-[Greeting Workflow Demo/greet-person]   ✅  Success - Checkout repository
-[Greeting Workflow Demo/greet-person]   🔨  Call custom greeting action
-[Greeting Workflow Demo/greet-person]     ✅ Generated greeting: Hello, Local Developer! 🎉 So excited to see you!
-[Greeting Workflow Demo/greet-person]   🔨  Display the greeting
-[Greeting Workflow Demo/greet-person]     🎯 Action returned: Hello, Local Developer! 🎉 So excited to see you!
-[Greeting Workflow Demo/greet-person]   🔨  Create greeting report
-[Greeting Workflow Demo/greet-person]   ✅  Success - Upload report artifact
-[Greeting Workflow Demo/greet-person]   ✅  Success - Add to workflow summary
-```
+4. **Test locally with act** (if time permits)
+   ```bash
+   # Run with extension
+   # Command Palette → "GitHub Local Actions: Run Workflow"
+   # Select enhanced-hello-world.yml
+   # Provide inputs when prompted
+   ```
 
-### Key Learning Points
+### Demo Talking Points
 
-#### **Architecture Demonstration**
-1. **Workflow orchestrates:** Handles input, calls action, processes output
-2. **Action encapsulates:** Contains reusable greeting logic
-3. **Communication:** Action receives inputs, returns outputs via `$GITHUB_OUTPUT`
-4. **Reusability:** Multiple workflows could use this greeting action
+**Triggers Demonstration:**
+- "Notice we have three trigger types: manual with inputs, push events for this specific workflow file, and a schedule for Monday mornings"
+- "The workflow adapts based on how it was triggered - it checks `github.event_name` to customize behavior"
 
-#### **Benefits Illustrated**
-- **Separation of concerns:** Workflow handles orchestration, action handles logic
-- **Testability:** Action can be tested independently
-- **Maintainability:** Update greeting logic in one place
-- **Scalability:** Easy to add more greeting styles or actions
+**Inputs Showcase:**
+- "When triggered manually, users get a form with multiple input types: text field, dropdown, and checkbox"
+- "The workflow uses default values when triggered by other events like push or schedule"
+- "We're also using GitHub's context variables to access repository, commit, and actor information"
 
-#### **Real-World Parallels**
-This simple example mirrors real automation patterns:
-- **Greeting action** → Environment setup, deployment logic, validation
-- **Workflow inputs** → Configuration parameters, target environments
-- **Action outputs** → Build artifacts, test results, deployment URLs
-- **Multiple steps** → Complex pipeline stages
+**Outputs Variety:**
+- "We're generating three types of outputs: detailed console logs, a downloadable artifact in the chosen format, and a rich markdown summary"
+- "The step summary uses `$GITHUB_STEP_SUMMARY` to create a formatted report visible without digging through logs"
+- "Artifacts are retained for 30 days and can be downloaded by anyone with access to the repository"
 
-### Extending the Demo
+**Real-World Patterns:**
+- "Conditional steps: System info only runs if the user requested it"
+- "Dynamic naming: Artifact names include the run number for uniqueness"
+- "Safe secret handling: We check if secrets exist and only show masked values"
 
-#### **Add More Workflows Using the Same Action**
-```yaml
-# .github/workflows/team-greetings.yml
-name: Team Greetings
-on:
-  schedule:
-    - cron: '0 9 * * 1'  # Monday mornings
-jobs:
-  greet-team:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        person: [Alice, Bob, Charlie]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/generate-greeting
-        with:
-          name: ${{ matrix.person }}
-          style: enthusiastic
-```
-
-#### **Modify Action for More Features**
-- Add emoji support based on style
-- Include timestamp in greeting
-- Support multiple languages
-- Add tone detection
+### Expected Demo Duration
+- **Workflow creation**: 2 minutes
+- **Manual trigger execution**: 2 minutes
+- **Output review**: 2 minutes
+- **Total**: 6-7 minutes
 
 **Script:**
-"Now let's see this relationship in action with the simplest possible example. I'm going to create a custom action that generates personalized greetings, and a workflow that calls it. Watch how the workflow orchestrates the process - it accepts input from the user, calls our custom action with those parameters, receives the output, and then uses that output in subsequent steps. This demonstrates the key principle: workflows are the conductors, actions are the musicians. The action encapsulates the greeting logic - it doesn't care who calls it or when. The workflow handles the triggers, inputs, and what to do with the results. This same pattern scales from simple greetings to complex deployment pipelines. You could have a deployment action that multiple workflows call with different environments, or a validation action that runs in PR workflows, scheduled workflows, and manual workflows. The separation makes your automation modular, testable, and maintainable."
+"Now let's bring this architecture to life with a practical demo. I'm going to create an enhanced version of our Hello World workflow that demonstrates multiple triggers, various input types, and different output formats. Watch how the same workflow can be triggered manually with user inputs, automatically on code changes, or on a schedule. We'll see how it processes different types of inputs - from user-provided parameters to secrets and GitHub context variables - and generates multiple outputs including console logs, downloadable artifacts, and rich formatted summaries. This is the pattern you'll use for real automation: flexible triggers, secure input handling, and comprehensive output options that make results accessible to your entire team."
 
----
-
-## Slide 11: Advanced Workflow - Inputs and Secrets
-**Demo Summary:** Demonstrate input parameters, secrets management, and secure API integration
-
-### Key Learning Points
-- **Input Parameters:** Interactive workflow configuration
-- **Secrets Management:** Secure credential handling at job level
-- **Environment Variables:** Proper scope and access patterns
-- **API Integration:** Authenticated external service calls
-- **Artifact Generation:** Structured output and reporting
-
-### Advanced Workflow Example
-
-```prompt
-Create a GitHub Actions workflow that demonstrates:
-- Manual trigger with input parameters for dynamic behavior
-- Accessing secrets from the repository's secrets store at job level
-- Using both input parameters and secrets throughout workflow steps
-- Making authenticated API calls to external services
-- Generating structured reports as artifacts
-```
-
-```yaml
-name: Repository Analysis with Secrets
-
-on:
-  workflow_dispatch:
-    inputs:
-      target_repo:
-        description: 'Target repository to analyze (owner/repo-name)'
-        required: true
-        default: 'microsoft/vscode'
-      analysis_type:
-        description: 'Type of analysis to perform'
-        required: true
-        type: choice
-        options: ['basic', 'detailed', 'security']
-
-jobs:
-  analyze-repo:
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      API_KEY: ${{ secrets.API_KEY }}
-    steps:
-      - name: Checkout current repository
-        uses: actions/checkout@v4
-      
-      - name: Display input parameters
-        run: |
-          echo "🎯 Target Repository: ${{ github.event.inputs.target_repo }}"
-          echo "📊 Analysis Type: ${{ github.event.inputs.analysis_type }}"
-          echo "🔧 Triggered by: ${{ github.actor }}"
-      
-      - name: Use GitHub token from secrets
-        run: |
-          echo "✅ GitHub token is available: ${GITHUB_TOKEN:0:4}..."
-          echo "🔑 Custom API key is available: ${API_KEY:0:4}..."
-          
-          # Use the token to make authenticated API calls
-          echo "📡 Fetching repository information..."
-          curl -s -H "Authorization: token $GITHUB_TOKEN" \
-               -H "Accept: application/vnd.github.v3+json" \
-               https://api.github.com/repos/${{ github.event.inputs.target_repo }} \
-               | jq '.name, .description, .stargazers_count, .language'
-      
-      - name: Generate analysis report
-        run: |
-          echo "# Repository Analysis Report" > analysis-report.md
-          echo "Generated: $(date)" >> analysis-report.md
-          echo "Target: ${{ github.event.inputs.target_repo }}" >> analysis-report.md
-          echo "Analysis Type: ${{ github.event.inputs.analysis_type }}" >> analysis-report.md
-          echo "" >> analysis-report.md
-          echo "## Summary" >> analysis-report.md
-          echo "- Repository successfully analyzed using GitHub API" >> analysis-report.md
-          echo "- Authentication: GitHub token from secrets" >> analysis-report.md
-          echo "- Input parameter: ${{ github.event.inputs.target_repo }}" >> analysis-report.md
-      
-      - name: Upload analysis report
-        uses: actions/upload-artifact@v4
-        with:
-          name: repo-analysis-${{ github.run_number }}
-          path: analysis-report.md
-```
-
-### Key Technical Points for Demo
-
-#### Input Parameters Deep Dive
-- **`workflow_dispatch` inputs:** Enable manual workflow triggers with user-provided parameters
-- **Input types:** `string` (default), `boolean`, `choice`, `environment` for different UI controls
-- **Required vs optional:** Control which parameters users must provide
-- **Default values:** Provide sensible defaults to reduce user friction
-- **Access pattern:** `${{ github.event.inputs.parameter_name }}` throughout the workflow
-
-#### Secrets Management Best Practices
-- **Job-level environment variables:** Declare secrets once at job scope for all steps
-- **Scope hierarchy:** Repository → Environment → Organization level secrets
-- **Automatic secrets:** `GITHUB_TOKEN` provided automatically for repository access
-- **Custom secrets:** Add via Settings → Secrets and variables → Actions
-- **Security benefits:** Never exposed in logs, only available during execution
-
-#### Environment Variable Patterns
-- **Job-level declaration:** `env:` at job level makes variables available to all steps
-- **Step-level override:** Individual steps can still declare additional environment variables
-- **Variable access:** Use `$VARIABLE_NAME` in shell commands, `${{ env.VARIABLE_NAME }}` in YAML
-- **Secrets vs environment:** Secrets are special environment variables with security protections
-
-#### API Integration Techniques
-- **Authorization headers:** Use `Authorization: token $GITHUB_TOKEN` for GitHub API
-- **Error handling:** Include proper curl error checking and response validation
-- **Rate limiting:** Be aware of API limits and implement backoff strategies
-- **Output parsing:** Use `jq` for JSON processing and data extraction
-
-### Demo Flow and Talking Points
-
-1. **Explain the trigger configuration**
-   - "Notice how `workflow_dispatch` includes an `inputs` section - this creates a user interface in GitHub"
-   - "The `choice` type creates a dropdown, while `string` creates a text input"
-   - "Default values help users get started quickly without having to research valid options"
-
-2. **Highlight the secrets management**
-   - "We're declaring secrets as environment variables at the job level - this is cleaner than repeating them in every step"
-   - "GITHUB_TOKEN is automatically available in every repository for API access"
-   - "Custom secrets like API_KEY need to be added through the repository settings"
-
-3. **Demonstrate the input usage**
-   - "Input parameters are accessed using the github.event.inputs context"
-   - "These can be used anywhere in the workflow - run commands, conditional logic, artifact names"
-
-4. **Show the security features**
-   - "Notice we only show the first 4 characters of secrets - GitHub automatically masks secret values in logs"
-   - "The actual API call uses the full token, but it's never visible in the output"
-
-5. **Explain the progression**
-   - "This workflow shows how we've progressed from a simple Hello World to a practical tool"
-   - "It demonstrates input handling, authentication, external API calls, and artifact generation"
-   - "This pattern can be adapted for any scenario requiring user input and secure operations"
-
-**Script:**
-"Now let's step up to a more sophisticated example that demonstrates the real power of GitHub Actions - input parameters and secrets management. This workflow shows how you can create interactive automation that accepts user input and securely handles credentials. The key architectural decision here is declaring secrets as environment variables at the job level - this makes them available to all steps while maintaining security. When users trigger this workflow manually, they'll see a form with input fields for the target repository and analysis type. The workflow then uses the built-in GITHUB_TOKEN and any custom secrets you've configured to make authenticated API calls. This pattern - interactive inputs plus secure authentication - is the foundation for building powerful, user-friendly automation tools that your entire team can use safely."
+**Time: 6-7 minutes**
 
 ---
 
@@ -1135,6 +803,8 @@ This next section will show you how to set up a complete local development envir
 **Script:**
 "The challenge with GitHub Actions has always been the development cycle - make a change, push, wait for the runner, check results. nektos/act changes this by letting you run GitHub Actions locally using Docker containers. Now, yes, you do need Docker Desktop installed, but here's the key point - you don't need to understand containerization or manage Docker images yourself. act automatically downloads and manages the GitHub runner containers, and GitHub Copilot can help with any Docker-related configuration if needed. The containerization complexity is completely abstracted away - you just focus on your workflow logic while act handles creating the same Ubuntu, Windows, or macOS environments that GitHub uses in the cloud. And here's another great option - if you don't want to install anything locally, you can develop your GitHub Actions entirely in GitHub Codespaces using your browser. You can set up dev containers with all the necessary extensions pre-installed, use your Codespaces compute time and storage, and build and debug your workflows without any of those test runs showing up in your repository's Actions tab. This gives you a completely clean development environment that doesn't pollute your production action history."
 
+**Time: 3 minutes**
+
 ---
 
 ## Slide 11: Installation and Setup
@@ -1173,6 +843,8 @@ winget install nektos.act
 
 **Script:**
 "Let me be very clear about the requirements for local GitHub Actions development. Docker Desktop is absolutely required - nektos/act cannot function without it because it uses Docker containers to simulate the GitHub runner environments. Make sure Docker Desktop is installed and running before attempting to use act. Since you're already working with GitHub repositories, I'm assuming GitHub CLI is available in your environment - either through Dev Containers or local installation. The most reliable way to get nektos/act running is through the GitHub Local Actions extension by Sanula Ganepola. This extension not only installs act for you but also provides a seamless interface for running and debugging workflows locally. The extension handles the heavy lifting and provides clear prompts when act needs to be installed, but remember - Docker Desktop must be running first. This approach eliminates the common installation issues we see with manual setups, but Docker remains the foundational requirement."
+
+**Time: 3 minutes**
 
 ---
 
@@ -1315,6 +987,8 @@ act --secret-file .secrets -v   # Verbose output with secrets loading
 
 **Script:**
 "Now let's see the real power of local development in action. I'm going to demonstrate running both our Hello World and Advanced workflows locally using the GitHub Local Actions extension. Watch how we can test complex workflows with input parameters and secrets without ever touching GitHub's cloud runners. This is where the development experience becomes truly iterative - we can modify, test, and refine our workflows in seconds rather than minutes. Notice how the extension handles input prompts, loads secrets from our local file, and provides the same execution environment as GitHub's hosted runners. This capability transforms how you develop automation - instead of the traditional commit-push-wait-debug cycle, you get immediate feedback and can iterate rapidly until your workflow is perfect."
+
+**Time: 5-7 minutes**
 
 ---
 
@@ -1632,6 +1306,8 @@ Modify `post-create.sh` to include team-specific workflow templates and configur
 **Script:**
 "Here's something that will accelerate your team's adoption - a complete dev container configuration that includes everything we've demonstrated today. This JSON file creates a fully-configured development environment with all the extensions, tools, and settings needed for GitHub Actions development. When team members open this in VS Code, they get nektos/act, the GitHub Local Actions extension, proper YAML validation, and even GitHub Copilot - all pre-configured and ready to use. The post-creation script handles the complex setup automatically, creates secure templates for secrets management, and even includes sample workflows to get started. This eliminates the 'it works on my machine' problem entirely. Whether someone is new to the team or working from a different computer, they get an identical, optimized environment in minutes rather than hours of manual setup. This is how you scale GitHub Actions knowledge across your organization - make it effortless for anyone to start developing automation."
 
+**Time: 3 minutes**
+
 ---
 
 ## Slide 14: GitHub Local Actions Extension Configuration & Usage
@@ -1808,6 +1484,8 @@ act --env-file .env.staging  # Multiple environment configurations
 **Script:**
 "Now let's focus on making GitHub Local Actions extension work seamlessly in your daily development workflow. The key is proper configuration - by setting up your VS Code workspace settings and project `.actrc` file correctly, you eliminate the need to remember command-line flags and create a consistent experience for your entire team. The extension transforms nektos/act from a command-line tool into an integrated VS Code experience. You can run workflows through the Command Palette, right-click context menus, or even CodeLens links that appear directly in your workflow files. The extension handles input prompts for `workflow_dispatch` triggers, displays real-time output in the integrated terminal, and even links error messages back to specific lines in your YAML files. While the CLI is still useful for advanced debugging scenarios like viewing workflow dependency graphs, the extension should be your primary interface for daily development. The configuration we're showing here eliminates the friction of local testing and makes GitHub Actions development feel native to your VS Code environment."
 
+**Time: 3 minutes**
+
 ---
 
 
@@ -1954,6 +1632,8 @@ act --env-file .env.staging  # Multiple environment configurations
 **Script:**
 "Before we dive into the demo, let's talk about the tools that make building GitHub Actions much easier. VS Code has excellent extensions - the official GitHub Actions extension provides syntax highlighting and IntelliSense, while the GitHub Local Actions extension we installed earlier handles local testing. For quality assurance, actionlint is fantastic for catching workflow errors before you commit. And if you're using GitHub Copilot or MCP services, they can significantly speed up workflow creation by suggesting common patterns and actions. Let's see this in action - I'll create a workflow that performs fuzzy content searches across our repository. Instead of manually running grep commands to find TODO items, technical debt, or specific patterns, we'll automate this into a searchable, repeatable process that generates detailed reports as artifacts. This demonstrates how GitHub Actions can transform ad-hoc repository analysis into systematic, shareable intelligence."
 
+**Time: 5-7 minutes**
+
 ---
 
 ## Slide 16: DEMO 2 - Local Testing with GitHub Local Actions
@@ -1979,6 +1659,8 @@ act --env-file .env.staging  # Multiple environment configurations
 
 **Script:**
 "Now I'll show you the real power - testing this action locally using the GitHub Local Actions extension. Instead of pushing to GitHub and waiting for a runner, I can test immediately on my machine. The extension provides a seamless interface that makes local testing feel native to VS Code. You can iterate rapidly, debug issues, and perfect your workflow before it ever runs in the cloud."
+
+**Time: 5-7 minutes**
 
 ---
 
@@ -2089,8 +1771,9 @@ steps:
 - **OIDC Integration:** Keyless authentication with cloud providers
 
 **Script:**
-"Now that you've seen GitHub Actions in action with our first two demos, let's dive deeper into what makes this platform so powerful. **Script:**
-"Now that you've seen GitHub Actions in action with our first two demos, let's dive deeper into what makes this platform so powerful. GitHub Actions isn't just about running scripts - it's a full orchestration platform with sophisticated workflow capabilities. You can accept input parameters for dynamic behavior, securely manage secrets and environment variables, and use pre-configured runner images with extensive tooling. The real power comes from job orchestration - you can run jobs in parallel, create dependencies between them, and use conditional logic to control execution flow based on results, events, or manual inputs. For outputs, you're not limited to console logs - you can generate rich summaries with markdown, store artifacts for later use, push data to databases or cloud storage, and integrate with external systems. This architecture transforms simple automation into enterprise-grade pipelines that can handle complex deployment scenarios, compliance workflows, and data processing tasks.""
+"Now that you've seen GitHub Actions in action with our first two demos, let's dive deeper into what makes this platform so powerful. GitHub Actions isn't just about running scripts - it's a full orchestration platform with sophisticated workflow capabilities. You can accept input parameters for dynamic behavior, securely manage secrets and environment variables, and use pre-configured runner images with extensive tooling. The real power comes from job orchestration - you can run jobs in parallel, create dependencies between them, and use conditional logic to control execution flow based on results, events, or manual inputs. For outputs, you're not limited to console logs - you can generate rich summaries with markdown, store artifacts for later use, push data to databases or cloud storage, and integrate with external systems. This architecture transforms simple automation into enterprise-grade pipelines that can handle complex deployment scenarios, compliance workflows, and data processing tasks."
+
+**Time: 3 minutes**
 
 ---
 
@@ -2164,6 +1847,8 @@ env:
 **Script:**
 "Success isn't just about building the automation - it's about making it discoverable, maintainable, and governable across your organization. The key is starting with clear documentation and strong examples that help your team understand not just how to use the workflows, but why they're valuable. Governance isn't about creating barriers - it's about creating safe patterns that allow teams to innovate while maintaining security and compliance. The most successful teams treat automation as a shared capability, with clear ownership, regular reviews, and continuous improvement. Remember, adoption is a process, not an event. Start with your most enthusiastic team members, prove the value with concrete examples, and let success drive broader adoption."
 
+**Time: 2 minutes**
+
 ---
 
 ## Slide 19: Team Integration & Notifications
@@ -2195,6 +1880,8 @@ env:
 
 **Script:**
 "One of the most powerful aspects of GitHub Actions is how it integrates with your existing team collaboration tools. Whether you're using Microsoft Teams, Slack, or custom webhooks, you can ensure your team stays informed about automation results. The key is being selective - you want notifications that add value, not noise. For Microsoft Teams specifically, you can create rich, actionable notifications that help your team stay on top of repository activity without overwhelming them."
+
+**Time: 2 minutes**
 
 ---
 
@@ -2253,6 +1940,8 @@ env:
 
 **Script:**
 "You're not alone in this journey. There's a rich ecosystem of tools, documentation, and community support specifically for GitHub Actions development. For development, actionlint is essential for catching workflow errors before you commit, and the GitHub Actions Toolkit helps if you're building custom actions. The online tools I've listed here solve real problems - checking if your actions are outdated, validating workflow syntax, and understanding cron expressions. For debugging, remember that you can enable detailed logging with the debug secrets we discussed. The GitHub Security Lab provides crucial guidance on securing your workflows, and Dependabot can automatically keep your action versions up to date. Start with the official docs and actionlint for validation, explore the community examples for inspiration, and don't hesitate to use the debugging tools when things don't work as expected. The GitHub Community and Stack Overflow are incredibly responsive for troubleshooting specific issues."
+
+**Time: 2 minutes**
 
 ---
 
@@ -3013,6 +2702,8 @@ jobs:
 **Script:**
 "Even if you're an experienced GitHub Actions developer, there are powerful features hiding in plain sight. Let me share eleven advanced patterns that will level up your workflows. First, reusable workflows - you can call workflows from other repositories, creating a centralized automation library for your entire organization. Second, the `.github/actions/` folder creates custom reusable components that work exactly like marketplace actions. Third, job outputs enable sophisticated workflow orchestration with intelligent conditional logic. Fourth, `$GITHUB_STEP_SUMMARY` creates beautiful Markdown reports that appear prominently in the Actions UI. Fifth, matrix strategies can dynamically adapt to runtime data from APIs or databases. Now for the performance and security patterns - concurrency controls automatically cancel obsolete runs, saving significant time and money. Environment protection rules provide built-in approval gates for production deployments. The new `$GITHUB_OUTPUT` syntax prevents security vulnerabilities present in the old set-output commands. Caching can reduce your workflow time by 70-90% by avoiding repeated dependency installations. Path filters ensure you only run workflows when relevant files change, critical for monorepos. And finally, workflow artifacts can be shared across separate workflow runs, enabling powerful build-once-deploy-many patterns. These eleven patterns transform GitHub Actions from a simple automation tool into a sophisticated, secure, and efficient orchestration platform."
 
+**Time: 5 minutes**
+
 ---
 
 ## Slide 22: Q&A and Next Steps
@@ -3032,6 +2723,8 @@ jobs:
 
 **Script:**
 "Let's open this up for questions. Think about the manual tasks that frustrate you most - those are often the best candidates for automation. Remember, the goal isn't to automate everything, but to automate the right things that provide real value to your team."
+
+**Time: 5-10 minutes**
 
 ---
 
@@ -3080,10 +2773,11 @@ bash scripts/repo-health.sh
 **Total Estimated Time:** 40-45 minutes
 - Introduction and foundation: 10 minutes (Slides 1-6)
 - Architecture and first demo: 8 minutes (Slides 7-8)
-- Advanced concepts: 10 minutes (Slides 9-10)
-- Local development deep dive: 12 minutes (Slides 11-16)
-- Team adoption and governance: 8 minutes (Slides 17-19)
-- Wrap-up and Q&A: 7 minutes (Slides 20-21)
+- Advanced workflow: 10 minutes (Slide 9)
+- Local development deep dive: 12 minutes (Slides 10-14)
+- Team adoption and governance: 8 minutes (Slides 15-20)
+- Wrap-up and Q&A: 7 minutes (Slides 21-22)
+- **Appendix A (optional):** Advanced workflows vs actions concepts for those creating reusable components
 
 **Key Takeaways:**
 1. GitHub Actions transforms local scripts into team tools
@@ -3091,3 +2785,241 @@ bash scripts/repo-health.sh
 3. nektos/act enables rapid local development and testing
 4. Proper governance and documentation ensure adoption
 5. Start small, prove value, then scale across the organization
+
+---
+
+# APPENDIX
+
+## Appendix A: Workflows vs Actions - Understanding the Architecture
+
+*Note: This is advanced material for those who want to create reusable custom actions. For most use cases, workflows alone are sufficient.*
+
+### The Fundamental Difference
+
+#### **Workflows** (`.github/workflows/`)
+- **What:** Complete automated processes that GitHub automatically discovers and runs
+- **File format:** YAML files (`.yml` or `.yaml`)
+- **Purpose:** Define when, where, and how automation runs
+- **Trigger:** Events (push, PR, manual, schedule, etc.)
+- **Visibility:** Automatically appear in GitHub Actions tab
+- **Analogy:** The "main program" that executes automatically
+
+#### **Actions** (`.github/actions/`)
+- **What:** Reusable building blocks that workflows can call
+- **File format:** `action.yml` in a subfolder
+- **Purpose:** Encapsulate reusable logic that multiple workflows can share
+- **Trigger:** Explicitly called by workflows using `uses:` keyword
+- **Visibility:** Not discovered automatically - must be referenced
+- **Analogy:** A "function" or "library" that workflows invoke
+
+### When to Create Custom Actions
+
+Most scenarios are best served by workflows alone. Consider custom actions only when:
+- Logic is repeated across multiple workflows
+- Complex operations obscure workflow intent
+- Steps need versioning and testing independently
+- Functionality should be shared across repositories
+
+For the initial presentation and most automation needs, focus on workflows which are simpler and more straightforward.
+
+---
+
+## Appendix B: Complete Triggers, Inputs, and Outputs Reference
+
+*This appendix provides comprehensive lists for Slide 9. Most workflows use the top 5 items shown in the main presentation.*
+
+---
+
+### Complete Triggers Reference
+
+**Repository Events:**
+- **`push`**: Code pushed to specific branches
+- **`pull_request`**: PR opened, synchronized, reopened, or closed
+- **`pull_request_target`**: PR from forks (with base repo permissions)
+- **`release`**: Repository release created or published
+- **`create`/`delete`**: Branch or tag creation/deletion
+- **`fork`**: Repository forked
+- **`watch`**: Repository starred
+- **`issues`**: Issue opened, edited, closed, etc.
+- **`issue_comment`**: Comment on issue or PR
+- **`discussion`**: Discussion created or modified
+- **`discussion_comment`**: Comment on discussion
+- **`project`** and **`project_card`**: Project board changes
+- **`milestone`**: Milestone created or modified
+
+**Schedule Triggers:**
+- **`schedule`**: Cron-based scheduled execution
+  ```yaml
+  on:
+    schedule:
+      - cron: '0 8 * * 1'  # Every Monday at 8 AM UTC
+      - cron: '0 0 * * *'  # Daily at midnight UTC
+  ```
+
+**Manual Triggers:**
+- **`workflow_dispatch`**: Manual trigger with input parameters
+- **`repository_dispatch`**: Triggered via GitHub API from external systems
+
+**Workflow Triggers:**
+- **`workflow_call`**: Called by other workflows (reusable workflows)
+- **`workflow_run`**: Triggered when another workflow completes
+
+**Other Events:**
+- **`check_run`** and **`check_suite`**: Check runs status changes
+- **`status`**: Commit status updates
+- **`deployment`** and **`deployment_status`**: Deployment events
+- **`page_build`**: GitHub Pages build events
+- **`registry_package`**: Package published or updated
+- **`gollum`**: Wiki page created or updated
+
+**Official Documentation**: [Events that trigger workflows](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows)
+
+---
+
+### Complete Inputs Reference
+
+**User-Provided Inputs:**
+- **Workflow dispatch inputs**: Parameters from manual triggers
+  - Types: `string` (default), `boolean`, `choice`, `environment`
+  - Required vs optional fields with `required: true/false`
+  - Default values with `default: 'value'`
+  - Descriptions for UI display
+  - Access via: `${{ github.event.inputs.input_name }}`
+
+**Repository Secrets:**
+- **Repository-level secrets**: Encrypted credentials stored in repo settings
+- **Environment secrets**: Scoped to specific environments (staging, production)
+- **Organization secrets**: Shared across multiple repositories
+- **`GITHUB_TOKEN`**: Automatically provided authentication token
+- **Access via**: `${{ secrets.SECRET_NAME }}`
+- **Security**: Never exposed in logs, masked automatically
+
+**Environment Variables:**
+- **Job-level variables**: `env:` at job level - available to all steps
+- **Step-level variables**: `env:` at step level - scoped to that step
+- **Runner environment**: Built-in variables like `RUNNER_OS`, `RUNNER_ARCH`
+- **Custom env files**: Load from `.env` files with third-party actions
+- **Access via**: 
+  - Shell: `$VARIABLE_NAME` or `${VARIABLE_NAME}`
+  - YAML: `${{ env.VARIABLE_NAME }}`
+
+**GitHub Context Variables:**
+- **`github.repository`**: Current repository name (owner/repo)
+- **`github.actor`**: User who triggered the workflow
+- **`github.sha`**: Commit SHA that triggered the workflow
+- **`github.ref`**: Branch or tag reference (refs/heads/main)
+- **`github.ref_name`**: Short branch/tag name (main)
+- **`github.event`**: Full event payload data
+- **`github.event_name`**: Trigger event type (push, pull_request, etc.)
+- **`github.run_id`**: Unique workflow run identifier
+- **`github.run_number`**: Sequential run number
+- **`github.job`**: Current job identifier
+- **`runner.os`**: Runner operating system (Linux, Windows, macOS)
+- **`runner.temp`**: Path to temporary directory
+- **`runner.tool_cache`**: Path to tool cache directory
+
+**External Inputs:**
+- **API responses**: Data fetched from external services with `curl` or actions
+- **Database queries**: Information retrieved from databases
+- **File contents**: Configuration files, data files via checkout
+- **Artifacts from previous runs**: Cross-workflow data sharing with `actions/download-artifact`
+- **Matrix values**: Dynamic job configurations from matrices
+
+**Official Documentation**: 
+- [Contexts](https://docs.github.com/en/actions/learn-github-actions/contexts)
+- [Environment variables](https://docs.github.com/en/actions/learn-github-actions/variables)
+- [Encrypted secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
+
+---
+
+### Complete Outputs Reference
+
+**Workflow Artifacts:**
+- **Build outputs**: Compiled binaries, packages, executables
+- **Test reports**: Coverage reports, test results, performance metrics
+- **Generated files**: Documentation, reports, images, videos
+- **Logs and diagnostics**: Debug information, profiling data
+- **Retention**: 90 days default, customizable from 1-400 days
+- **Upload via**: `actions/upload-artifact@v4`
+- **Download via**: `actions/download-artifact@v4` or GitHub UI
+- **Size limit**: 10GB per artifact, 10GB total per workflow
+
+**Step Summary:**
+- **`$GITHUB_STEP_SUMMARY`**: Markdown-formatted output in Actions UI
+- **Rich formatting**: Tables, lists, code blocks, images, links
+- **Persistent display**: Visible without digging through logs
+- **Multiple steps**: Each step can append to summary
+- **Use cases**: Test results, deployment status, metrics dashboards
+- **Example**: `echo "## Results" >> $GITHUB_STEP_SUMMARY`
+
+**Console Logs:**
+- **Standard output**: Real-time execution logs with `echo` and `run:`
+- **Debug logging**: Verbose output with `ACTIONS_STEP_DEBUG` secret
+- **Error messages**: Failure diagnostics with exit codes
+- **Grouped output**: Collapsible log sections with `::group::` and `::endgroup::`
+- **Annotations**: Error/warning markers with `::error::` and `::warning::`
+- **Masking**: Hide sensitive values with `::add-mask::`
+- **Retention**: Logs stored for 90 days (not customizable)
+
+**Repository Changes:**
+- **Commits**: Automated code changes with `git commit` and `git push`
+- **Pull requests**: Created or updated PRs via GitHub CLI or API
+- **Releases**: Published releases with assets via `actions/create-release`
+- **Issue/PR comments**: Automated feedback with GitHub CLI or actions
+- **Labels**: Add/remove issue and PR labels
+- **Status checks**: Pass/fail status for commits and PRs
+
+**External Integrations:**
+- **Cloud storage**: 
+  - Azure Blob Storage with Azure CLI
+  - AWS S3 with AWS CLI
+  - Google Cloud Storage with gcloud CLI
+- **Databases**: 
+  - SQL: MySQL, PostgreSQL, SQL Server connections
+  - NoSQL: MongoDB, Redis, Cosmos DB
+  - Cache updates and data synchronization
+- **APIs**: 
+  - POST to webhooks with `curl`
+  - REST endpoints for external services
+  - GraphQL queries to external systems
+- **Notifications**: 
+  - Microsoft Teams with webhook actions
+  - Slack with Slack actions or webhooks
+  - Email with third-party services
+  - SMS with Twilio or similar services
+- **Deployments**: 
+  - Azure with Azure CLI and deployment actions
+  - AWS with AWS CLI and deployment actions
+  - GCP with gcloud CLI
+  - Kubernetes with kubectl
+
+**Job Outputs:**
+- **Cross-job communication**: Pass data between jobs with `outputs:`
+- **Conditional execution**: Control workflow based on results with `if:`
+- **Dynamic matrices**: Generate job configurations at runtime with `fromJSON()`
+- **Reusable workflow outputs**: Return data from called workflows
+- **Example**:
+  ```yaml
+  jobs:
+    job1:
+      outputs:
+        result: ${{ steps.step1.outputs.result }}
+      steps:
+        - id: step1
+          run: echo "result=success" >> $GITHUB_OUTPUT
+    job2:
+      needs: job1
+      if: needs.job1.outputs.result == 'success'
+      steps:
+        - run: echo "Job1 succeeded!"
+  ```
+
+**Official Documentation**: 
+- [Artifacts](https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts)
+- [Job outputs](https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs)
+- [Workflow commands](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions)
+
+---
+
+---
+
