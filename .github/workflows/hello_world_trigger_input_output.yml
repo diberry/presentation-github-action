@@ -26,18 +26,20 @@ jobs:
         with:
           node-version: "lts/*"
 
+      - name: Set date
+        run: echo "DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+
       - name: Activity check
         working-directory: github-issues-and-prs
         env:
           GITHUB_TOKEN: ${{ secrets.WEEKLYINFO_GITHUB_TOKEN }}
         run: |
           npm install
-          DATE=$(date +%Y-%m-%d)
           npm run start > ../activity-${DATE}-${{ github.run_number }}.txt 2>&1
 
       - name: Upload report artifact
         uses: actions/upload-artifact@v5
         with:
-          name: activity-report-${DATE}-${{ github.run_number }}
+          name: activity-report-${{ env.DATE }}-${{ github.run_number }}
           path: activity-*.txt
           retention-days: 30
