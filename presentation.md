@@ -153,9 +153,11 @@ Platform Options:
 - **Organization Actions:** Private marketplace for enterprise teams
 
 **Script:**
-"The beauty of GitHub Actions is its versatility - you can automate virtually anything you can run from a command line. Whether you're working with traditional scripting languages like Bash and PowerShell, modern applications in .NET, Go, or Python, or orchestrating complex workflows with CLI tools like Azure CLI and Terraform, GitHub Actions provides the runtime environment. But here's where it gets really powerful - the GitHub Actions Marketplace has over 20,000 pre-built actions covering everything from cloud deployments to security scanning. And if you need something specific, you can create custom actions using JavaScript for speed, Docker for maximum flexibility, or composite actions to package common workflow patterns. This means you're not just limited to what you can script - you're tapping into an entire ecosystem of automation building blocks."
+"The beauty of GitHub Actions is its versatility - you can automate virtually anything you can run from a command line. Whether you're working with traditional scripting languages like Bash and PowerShell, modern applications in .NET, Go, or Python, or orchestrating complex workflows with CLI tools like Azure CLI and Terraform, GitHub Actions provides the runtime environment. But here's where it gets really powerful - the GitHub Actions Marketplace has over 20,000 pre-built actions covering everything from cloud deployments to security scanning. And if you need something specific, you can create custom actions using JavaScript for speed, Docker for maximum flexibility, or composite actions to package common workflow patterns. This means you're not just limited to what you can script - you're tapping into an entire ecosystem of automation building blocks.
 
-**Time: 2 minutes**
+As a content developer, I can use GitHub Actions to validate my procedural documentation. When customers report that quickstart steps aren't working, the workflows simulate their experience - installing prerequisites, configuring Azure resources, and running through each step."
+
+**Time: 3 minutes**
 
 ---
 
@@ -473,293 +475,163 @@ jobs:
 
 ---
 
-## Slide 9 DEMO: Enhanced Hello World with Triggers, Inputs, and Outputs
-**Demo Summary:** Extend the Hello World workflow to demonstrate triggers, inputs, and outputs
+## Slide 9 DEMO: Weekly GitHub Activity Report with Automation
+**Demo Summary:** Real-world workflow that automatically tracks GitHub issues and PRs across repositories
 
 ### Demo Overview
-We'll enhance our Hello World workflow to showcase practical examples of different triggers, input mechanisms, and output formats. This demonstrates the full power of GitHub Actions architecture.
+We'll create a practical automation workflow that demonstrates scheduled execution, secret management, and artifact generation. This workflow uses a Node.js application to fetch GitHub activity data and generates downloadable reports - a pattern you'll use for real developer automation tasks.
+
+### The Node.js Application
+
+Located in `github-issues-and-prs/`, this simple console application demonstrates:
+- **GitHub REST API integration** using `@octokit/rest`
+- **Two activity tracking modes**:
+  - `user-activity.js`: Your personal issues/PRs (created, assigned, mentioned, reviewing)
+  - `repo-activity.js`: All issues/PRs in specified repositories
+- **Configuration via `repos.json`**: Default list of repositories to monitor
+- **Flexible CLI**: Can override repos via command-line arguments
 
 ### Enhanced Workflow
 
 ```prompt
-Create an enhanced GitHub Actions workflow that demonstrates:
-- Multiple trigger types: manual (with inputs), push events, and scheduled execution
-- Various input types: workflow inputs, secrets, and environment variables
-- Multiple output formats: artifacts, step summary, and logs
-- Practical use of GitHub context variables
-- Real-world patterns like conditional execution and dynamic naming
+Create a GitHub Actions workflow that:
+- Runs on a schedule (weekly) and manual trigger
+- Uses repository secrets for GitHub API authentication
+- Executes a Node.js application to fetch GitHub activity data
+- Generates dated artifact files for download and archival
+- Demonstrates real-world patterns for API-based automation
 ```
 
 ```yaml
-name: Enhanced Hello World - Triggers, Inputs & Outputs
+name: Weekly GitHub Activity Report
+# 2025/11/08
 
 on:
-  # Manual trigger with inputs
+  # Manual trigger with optional repo override
   workflow_dispatch:
     inputs:
-      greeting_name:
-        description: 'Name to greet'
-        required: true
-        default: 'World'
-      report_format:
-        description: 'Output report format'
-        type: choice
-        options: ['markdown', 'text', 'json']
-        default: 'markdown'
-      include_system_info:
-        description: 'Include system information'
-        type: boolean
-        default: true
-  
-  # Push trigger
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/enhanced-hello-world.yml'
+      repos:
+        description: "Comma-separated list of repos (e.g., owner/repo1,owner/repo2)"
+        required: false
   
   # Schedule trigger (every Monday at 9 AM UTC)
   schedule:
     - cron: '0 9 * * 1'
 
 jobs:
-  enhanced-hello:
+  activity-report:
     runs-on: ubuntu-latest
-    
-    env:
-      # Environment variables available to all steps
-      WORKFLOW_NAME: "Enhanced Hello World"
-      TIMESTAMP: ${{ github.event.head_commit.timestamp || github.run_started_at }}
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
-      - name: Display trigger information
-        run: |
-          echo "🎯 Workflow Trigger Information"
-          echo "================================"
-          echo "Event name: ${{ github.event_name }}"
-          echo "Triggered by: ${{ github.actor }}"
-          echo "Repository: ${{ github.repository }}"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Commit SHA: ${{ github.sha }}"
-          echo "Runner OS: ${{ runner.os }}"
-          echo "Timestamp: $TIMESTAMP"
-      
-      - name: Process workflow inputs
-        run: |
-          echo "📥 Processing Inputs"
-          echo "==================="
-          
-          # Handle different trigger types
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "Manual trigger detected"
-            echo "Greeting name: ${{ github.event.inputs.greeting_name }}"
-            echo "Report format: ${{ github.event.inputs.report_format }}"
-            echo "Include system info: ${{ github.event.inputs.include_system_info }}"
-          elif [ "${{ github.event_name }}" = "push" ]; then
-            echo "Push trigger detected"
-            echo "Commit message: ${{ github.event.head_commit.message }}"
-          elif [ "${{ github.event_name }}" = "schedule" ]; then
-            echo "Scheduled trigger detected"
-            echo "This is the weekly automated run"
-          fi
-      
-      - name: Generate greeting
-        run: |
-          NAME="${{ github.event.inputs.greeting_name || 'Automated Process' }}"
-          echo "👋 Hello, $NAME! 🎉"
-          echo "Welcome to GitHub Actions automation!"
-      
-      - name: Collect system information
-        if: github.event.inputs.include_system_info != 'false'
-        run: |
-          echo "💻 System Information"
-          echo "===================="
-          echo "Hostname: $(hostname)"
-          echo "Current date: $(date)"
-          echo "Working directory: $(pwd)"
-          echo "Disk usage: $(df -h . | tail -1 | awk '{print $4 " available"}')"
-          echo "Memory info: $(free -h | grep Mem | awk '{print $4 " available"}')"
-          echo "CPU info: $(nproc) cores"
-      
-      - name: Generate report artifact
-        run: |
-          REPORT_FORMAT="${{ github.event.inputs.report_format || 'markdown' }}"
-          REPORT_NAME="workflow-report-${{ github.run_number }}"
-          
-          if [ "$REPORT_FORMAT" = "markdown" ]; then
-            cat > ${REPORT_NAME}.md << 'EOF'
-          # Enhanced Hello World Report
-          
-          ## Execution Details
-          - **Workflow**: ${{ env.WORKFLOW_NAME }}
-          - **Run Number**: ${{ github.run_number }}
-          - **Triggered By**: ${{ github.actor }}
-          - **Event**: ${{ github.event_name }}
-          - **Repository**: ${{ github.repository }}
-          - **Branch**: ${{ github.ref_name }}
-          - **Commit**: ${{ github.sha }}
-          - **Runner**: ${{ runner.os }}
-          
-          ## Status
-          ✅ Workflow completed successfully!
-          
-          ## Timestamp
-          Generated: $(date)
-          EOF
-          elif [ "$REPORT_FORMAT" = "json" ]; then
-            cat > ${REPORT_NAME}.json << EOF
-          {
-            "workflow": "${{ env.WORKFLOW_NAME }}",
-            "run_number": ${{ github.run_number }},
-            "triggered_by": "${{ github.actor }}",
-            "event": "${{ github.event_name }}",
-            "repository": "${{ github.repository }}",
-            "branch": "${{ github.ref_name }}",
-            "commit": "${{ github.sha }}",
-            "runner": "${{ runner.os }}",
-            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "status": "success"
-          }
-          EOF
-          else
-            cat > ${REPORT_NAME}.txt << EOF
-          Enhanced Hello World Report
-          ===========================
-          
-          Workflow: ${{ env.WORKFLOW_NAME }}
-          Run Number: ${{ github.run_number }}
-          Triggered By: ${{ github.actor }}
-          Event: ${{ github.event_name }}
-          Repository: ${{ github.repository }}
-          Branch: ${{ github.ref_name }}
-          Commit: ${{ github.sha }}
-          Runner: ${{ runner.os }}
-          
-          Status: SUCCESS
-          Generated: $(date)
-          EOF
-          fi
-          
-          echo "📄 Report generated: ${REPORT_NAME}.${REPORT_FORMAT}"
-          ls -lh ${REPORT_NAME}.*
-      
-      - name: Upload report artifact
-        uses: actions/upload-artifact@v4
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v6
         with:
-          name: workflow-report-${{ github.run_number }}
-          path: workflow-report-${{ github.run_number }}.*
-          retention-days: 30
+          node-version: "lts/*"
       
-      - name: Create workflow step summary
-        run: |
-          echo "## 🎯 Enhanced Hello World Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Execution Details" >> $GITHUB_STEP_SUMMARY
-          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **Workflow** | ${{ env.WORKFLOW_NAME }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Run Number** | #${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Triggered By** | @${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Event Type** | \`${{ github.event_name }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Repository** | ${{ github.repository }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Branch** | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Runner OS** | ${{ runner.os }} |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "### 📥 User Inputs" >> $GITHUB_STEP_SUMMARY
-            echo "- **Greeting Name**: ${{ github.event.inputs.greeting_name }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **Report Format**: ${{ github.event.inputs.report_format }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **Include System Info**: ${{ github.event.inputs.include_system_info }}" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          echo "### 📊 Output Generated" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Workflow logs available in console output" >> $GITHUB_STEP_SUMMARY
-          echo "- 📄 Report artifact: \`workflow-report-${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- 📋 This summary provides quick overview" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "*Generated: $(date)*" >> $GITHUB_STEP_SUMMARY
+      - name: Set date for artifact naming
+        run: echo "DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
       
-      - name: Demonstrate secret usage (safe)
+      - name: Run GitHub activity check
+        working-directory: github-issues-and-prs
         env:
-          DEMO_SECRET: ${{ secrets.DEMO_SECRET || 'not-configured' }}
+          GITHUB_TOKEN: ${{ secrets.WEEKLYINFO_GITHUB_TOKEN }}
         run: |
-          echo "🔐 Secret Configuration Status"
-          echo "=============================="
-          if [ "$DEMO_SECRET" != "not-configured" ]; then
-            echo "✅ DEMO_SECRET is configured"
-            echo "First 4 characters: ${DEMO_SECRET:0:4}****"
-          else
-            echo "⚠️  DEMO_SECRET is not configured in repository secrets"
-            echo "This is optional for the demo"
-          fi
+          npm install
+          npm run start > ../activity-${DATE}-${{ github.run_number }}.txt 2>&1
+      
+      - name: Upload activity report artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: activity-report-${{ env.DATE }}-${{ github.run_number }}
+          path: activity-*.txt
+          retention-days: 30
 ```
 
 ### Demo Steps
 
-1. **Create the enhanced workflow file**
-   - Save as `.github/workflows/enhanced-hello-world.yml`
-   - VS Code extension validates syntax automatically
+1. **Show the Node.js application structure**
+   ```bash
+   cd github-issues-and-prs
+   # Show package.json - simple dependencies (@octokit/rest)
+   # Show repos.json - configured repositories to monitor
+   # Show user-activity.js and repo-activity.js - two tracking modes
+   ```
 
-2. **Test manual trigger with inputs**
+2. **Test locally first** (demonstrates local dev workflow)
+   ```bash
+   npm install
+   npm run user:dev     # Your personal activity
+   npm run repo:dev     # Activity in configured repos
+   npm run dev:all      # Both reports
+   ```
+
+3. **Create repository secret**
+   - Navigate to Settings → Secrets and variables → Actions
+   - Click "New repository secret"
+   - Name: `WEEKLYINFO_GITHUB_TOKEN`
+   - Value: Your GitHub personal access token with `repo` scope
+   - This demonstrates secure secret management
+
+4. **Run the workflow manually**
    - Navigate to Actions tab in GitHub
-   - Click "Enhanced Hello World - Triggers, Inputs & Outputs"
+   - Click "Weekly GitHub Activity Report"
    - Click "Run workflow"
-   - Fill in inputs:
-     - **Greeting name**: "GitHub Actions Team"
-     - **Report format**: "markdown"
-     - **Include system info**: true
+   - Leave repos empty to use defaults from `repos.json`
    - Click "Run workflow" button
 
-3. **Review outputs**
-   - **Console logs**: Real-time execution output
-   - **Step summary**: Rich formatted summary at bottom of run
-   - **Artifacts**: Download generated report file
-
-4. **Test locally with act** (if time permits)
-   ```bash
-   # Run with extension
-   # Command Palette → "GitHub Local Actions: Run Workflow"
-   # Select enhanced-hello-world.yml
-   # Provide inputs when prompted
-   ```
+5. **Review outputs**
+   - **Console logs**: See the GitHub API calls and results in real-time
+   - **Artifacts**: Download the dated activity report (e.g., `activity-2025-11-08-42.txt`)
+   - **Scheduled execution**: Explain it will run every Monday automatically
 
 ### Demo Talking Points
 
-**Triggers Demonstration:**
-- "Notice we have three trigger types: manual with inputs, push events for this specific workflow file, and a schedule for Monday mornings"
-- "The workflow adapts based on how it was triggered - it checks `github.event_name` to customize behavior"
+**Real-World Use Case:**
+- "This solves a common problem: staying on top of GitHub activity across multiple repositories"
+- "Instead of manually checking each repo, this automation runs weekly and sends you a report"
+- "The same pattern works for any API-based data collection: Azure resources, deployment status, test results"
 
-**Inputs Showcase:**
-- "When triggered manually, users get a form with multiple input types: text field, dropdown, and checkbox"
-- "The workflow uses default values when triggered by other events like push or schedule"
-- "We're also using GitHub's context variables to access repository, commit, and actor information"
+**Simple, Maintainable Code:**
+- "Notice the Node.js app is straightforward - just 150 lines total across two scripts"
+- "Uses official GitHub SDK `@octokit/rest` - no need to manually construct API calls"
+- "Configuration in `repos.json` means non-developers can update the repo list"
+- "Easy to test locally before running in Actions"
 
-**Outputs Variety:**
-- "We're generating three types of outputs: detailed console logs, a downloadable artifact in the chosen format, and a rich markdown summary"
-- "The step summary uses `$GITHUB_STEP_SUMMARY` to create a formatted report visible without digging through logs"
-- "Artifacts are retained for 30 days and can be downloaded by anyone with access to the repository"
+**Workflow Best Practices:**
+- "Scheduled execution: Runs every Monday automatically, no manual intervention"
+- "Manual override: Can trigger anytime and optionally override the repo list"
+- "Secret management: GitHub token stored securely, never exposed in logs"
+- "Dated artifacts: Each report includes date and run number for easy tracking"
+- "Environment variables: `DATE` set once and used throughout the workflow"
 
-**Real-World Patterns:**
-- "Conditional steps: System info only runs if the user requested it"
-- "Dynamic naming: Artifact names include the run number for uniqueness"
-- "Safe secret handling: We check if secrets exist and only show masked values"
+**Practical Patterns You'll Use:**
+- "This demonstrates the three-layer architecture: workflow → Node.js app → API"
+- "Local development first, then deploy to Actions - standard dev workflow"
+- "Output redirection captures all results to a file for archival"
+- "Artifact retention (30 days) keeps historical data without cluttering the repo"
 
 ### Expected Demo Duration
-- **Workflow creation**: 2 minutes
-- **Manual trigger execution**: 2 minutes
-- **Output review**: 2 minutes
-- **Total**: 6-7 minutes
+- **Show Node.js app structure**: 1 minute
+- **Run locally to demonstrate**: 1-2 minutes
+- **Set up secret**: 1 minute
+- **Trigger workflow and review**: 2-3 minutes
+- **Total**: 5-7 minutes
+
+### Key Takeaways for Audience
+
+1. **Start Simple**: This is a ~150-line Node.js app that solves a real problem
+2. **Test Locally First**: The same code runs locally and in Actions
+3. **Use Official SDKs**: `@octokit/rest` handles API complexity
+4. **Secure by Default**: Secrets never appear in logs or artifacts
+5. **Automate Repetitive Tasks**: Weekly reports run without manual intervention
 
 **Script:**
-"Now let's bring this architecture to life with a practical demo. I'm going to create an enhanced version of our Hello World workflow that demonstrates multiple triggers, various input types, and different output formats. Watch how the same workflow can be triggered manually with user inputs, automatically on code changes, or on a schedule. We'll see how it processes different types of inputs - from user-provided parameters to secrets and GitHub context variables - and generates multiple outputs including console logs, downloadable artifacts, and rich formatted summaries. This is the pattern you'll use for real automation: flexible triggers, secure input handling, and comprehensive output options that make results accessible to your entire team."
+"Let me show you a real-world automation that I use myself. This workflow tracks GitHub activity across multiple repositories - issues, PRs, review requests - and generates a weekly report. The key here is that we're not writing complex workflow YAML - we're using a simple Node.js application that we can develop and test locally, then run it in GitHub Actions with just a few lines of workflow configuration. Notice how we handle the GitHub token securely through repository secrets, how we generate dated artifacts for historical tracking, and how the same workflow can run on a schedule or be triggered manually. This three-layer architecture - workflow, application code, external API - is the pattern you'll use for most real automation tasks. The workflow orchestrates, your code does the work, and APIs provide the data."
 
-**Time: 6-7 minutes**
+**Time: 5-7 minutes**
 
 ---
 
@@ -824,12 +696,14 @@ docker ps
 # Verify GitHub CLI is available (should already be installed)
 gh --version
 
+# Verify nektos/act is installed (pre-installed in dev container)
+act --version
+
 # Install GitHub Local Actions extension by Sanula Ganepola
-# This extension handles nektos/act installation and management
 code --install-extension sanulaganepola.github-local-actions
 
-# The extension will automatically prompt to install nektos/act
-# or you can trigger installation via Command Palette:
+# If NOT using dev container, the extension will prompt to install nektos/act
+# or trigger installation via Command Palette:
 # Ctrl+Shift+P → "GitHub Local Actions: Install Act"
 ```
 
@@ -842,7 +716,7 @@ winget install nektos.act
 ```
 
 **Script:**
-"Let me be very clear about the requirements for local GitHub Actions development. Docker Desktop is absolutely required - nektos/act cannot function without it because it uses Docker containers to simulate the GitHub runner environments. Make sure Docker Desktop is installed and running before attempting to use act. Since you're already working with GitHub repositories, I'm assuming GitHub CLI is available in your environment - either through Dev Containers or local installation. The most reliable way to get nektos/act running is through the GitHub Local Actions extension by Sanula Ganepola. This extension not only installs act for you but also provides a seamless interface for running and debugging workflows locally. The extension handles the heavy lifting and provides clear prompts when act needs to be installed, but remember - Docker Desktop must be running first. This approach eliminates the common installation issues we see with manual setups, but Docker remains the foundational requirement."
+"Let's talk about prerequisites for local GitHub Actions development. You need three things: VS Code as your development environment with the GitHub Local Actions extension, GitHub CLI for easier authentication and act installation, and Docker Desktop - this is critical. Why Docker? Because GitHub Actions run inside containers in the cloud. When nektos/act tests locally, it runs those same Docker images on your machine, mirroring production exactly. The extension handles container configuration complexity, but Docker must be installed and running. This setup gives you a complete local environment matching GitHub's cloud infrastructure. Now, if you're using this repository's dev container, you're in luck - nektos/act is already pre-installed and configured. You just need to install the VS Code extension and you're ready to go."
 
 **Time: 3 minutes**
 
@@ -1005,18 +879,15 @@ Create a complete dev container setup for GitHub Actions development with the fo
 
 CORE REQUIREMENTS:
 - Base image: Microsoft's universal dev container with Linux
+  (doesn't work on Apple silicon Macs)
 - Docker-in-Docker support for nektos/act
-- GitHub CLI for repository management
-- Node.js LTS for JavaScript actions development
-- nektos/act for local GitHub Actions testing
+- GitHub CLI to help install nektos/act and manage authentication
+- Language runtime for local development
+- nektos/act extension
 
 VS CODE EXTENSIONS:
-- GitHub Actions official extension for syntax highlighting and IntelliSense
 - GitHub Local Actions extension by Sanula Ganepola for local testing
-- YAML extension by Red Hat for schema validation
-- GitHub Copilot and Copilot Chat for AI assistance
 - Docker extension for container management
-- Code Spell Checker for documentation quality
 
 DEVELOPMENT OPTIMIZATIONS:
 - YAML schema mapping for GitHub Actions workflow validation
@@ -1037,11 +908,10 @@ SECURITY FEATURES:
 - Proper Docker socket permissions
 - Gitignore patterns for local development artifacts
 
-OUTPUT FILES NEEDED:
+DEVCONTAINER FILES NEEDED:
 1. .devcontainer/devcontainer.json - Main configuration
 2. .devcontainer/post-create.sh - Setup automation script
-3. .secrets.template - Template for local secrets
-4. .github/workflows/hello-world.yml - Sample workflow
+
 
 The setup should be production-ready, team-friendly, and eliminate "works on my machine" issues.
 ```

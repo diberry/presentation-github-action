@@ -5,7 +5,7 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "start": "node user-activity.js && node repo-activity.js",
+        "start": "printenv && node user-activity.js && node repo-activity.js",
 
         "user:dev": "node --env-file .env user-activity.js",
         "repo:dev": "node --env-file .env repo-activity.js",

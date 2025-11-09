@@ -38,6 +38,7 @@ jobs:
           npm run start > ../activity-${DATE}-${{ github.run_number }}.txt 2>&1
 
       - name: Upload report artifact
+        if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v5
         with:
           name: activity-report-${{ env.DATE }}-${{ github.run_number }}
