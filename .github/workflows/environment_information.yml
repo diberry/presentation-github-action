@@ -1,0 +1,100 @@
+name: Environment data
+# Last updated: 2025/11/10
+on:
+  # Manual trigger with inputs
+  workflow_dispatch:
+    inputs:
+      repos:
+        description: "Comma-separated list of repos (e.g., owner/repo1,owner/repo2)"
+        required: false
+
+  # Disabled: Using workflow_run trigger instead
+  # schedule:
+  #   - cron: "0 9 * * 1"
+
+  workflow_run:
+    workflows: ["Hello World"]
+    types:
+      - completed
+
+jobs:
+  enhanced-hello:
+    runs-on: ubuntu-latest
+    # Only run if the triggering workflow succeeded
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    timeout-minutes: 15
+
+    strategy:
+      matrix:
+        node-version: ["20.x", "22.x"]
+
+    steps:
+      - name: Triggered by event
+        run: echo "Triggered by ${{ github.event_name }} with Node ${{ matrix.node-version }}"
+
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: "${{ matrix.node-version }}"
+          cache: "npm"
+          cache-dependency-path: github-issues-and-prs/package-lock.json
+
+      - name: Set date
+        run: echo "DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+
+      - name: Verify working directory
+        run: |
+          if [ ! -d "github-issues-and-prs" ]; then
+            echo "Error: github-issues-and-prs directory not found"
+            exit 1
+          fi
+
+      - name: Validate GitHub token
+        run: |
+          if [ -z "${{ secrets.WEEKLYINFO_GITHUB_TOKEN }}" ]; then
+            echo "Error: WEEKLYINFO_GITHUB_TOKEN secret not configured"
+            exit 1
+          fi
+
+      - name: Activity check
+        working-directory: github-issues-and-prs
+        env:
+          GITHUB_TOKEN: ${{ secrets.WEEKLYINFO_GITHUB_TOKEN }}
+        run: |
+          npm ci
+          npm run start ${{ inputs.repos || '' }} 2>&1 | tee ../activity-node${{ matrix.node-version }}-${DATE}-${{ github.run_number }}.txt
+
+      - name: Verify report was generated
+        run: |
+          if [ ! -f "activity-node${{ matrix.node-version }}-${DATE}-${{ github.run_number }}.txt" ]; then
+            echo "Warning: Activity report file was not generated"
+            exit 1
+          fi
+          echo "Report size: $(wc -l < activity-node${{ matrix.node-version }}-${DATE}-${{ github.run_number }}.txt) lines"
+
+      - name: Upload report artifact
+        if: ${{ !env.ACT }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: activity-report-node${{ matrix.node-version }}-${{ env.DATE }}-${{ github.run_number }}
+          path: activity-*.txt
+          retention-days: 30
+
+      - name: Generate step summary
+        if: always()
+        run: |
+          echo "## 📊 Activity Report Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Node Version:** ${{ matrix.node-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Date:** ${DATE}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Run Number:** ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          if [ -f "activity-node${{ matrix.node-version }}-${DATE}-${{ github.run_number }}.txt" ]; then
+            echo "- **Report size:** $(wc -l < activity-node${{ matrix.node-version }}-${DATE}-${{ github.run_number }}.txt) lines" >> $GITHUB_STEP_SUMMARY
+            echo "- **Status:** ✅ Report generated successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Status:** ❌ Report generation failed" >> $GITHUB_STEP_SUMMARY
+          fi

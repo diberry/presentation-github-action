@@ -1761,55 +1761,23 @@ env:
 ### Essential Documentation
 - **GitHub Actions Documentation:** [docs.github.com/actions](https://docs.github.com/actions)
 - **Workflow Syntax Reference:** [docs.github.com/actions/reference/workflow-syntax-for-github-actions](https://docs.github.com/actions/reference/workflow-syntax-for-github-actions)
-- **GitHub Actions Changelog:** Track new features and deprecations
-- **Azure Actions Marketplace:** Pre-built Azure integrations
+- **Actions Marketplace:** [Pre-built Azure integrations](https://github.com/marketplace?type=actions)
 - **Community Examples:** [github.com/actions/starter-workflows](https://github.com/actions/starter-workflows)
 
 ### Development & Testing Tools
 - **nektos/act:** [github.com/nektos/act](https://github.com/nektos/act) - Local workflow testing
-- **actionlint:** [github.com/rhysd/actionlint](https://github.com/rhysd/actionlint) - Static workflow validation
-- **act-js:** [github.com/kiegroup/act-js](https://github.com/kiegroup/act-js) - Programmatic act interface
-- **GitHub Actions Toolkit:** [github.com/actions/toolkit](https://github.com/actions/toolkit) - Build custom actions
 
 ### VS Code Extensions
 - **GitHub Actions (Official):** Syntax highlighting and IntelliSense
 - **GitHub Local Actions:** By Sanula Ganepola - Local testing integration
-- **YAML:** By Red Hat - Schema validation
-- **GitHub Copilot:** AI-powered workflow generation
 
 ### Debugging & Troubleshooting
 - **Debug Logging:** Add `ACTIONS_STEP_DEBUG` and `ACTIONS_RUNNER_DEBUG` secrets
-- **GitHub Actions Runner:** [github.com/actions/runner](https://github.com/actions/runner) - Understand runner internals
 - **act Troubleshooting Guide:** Common local testing issues
-- **Workflow Visualization:** [github.com/githubocto/flat-viewer](https://github.com/githubocto/flat-viewer) - Visualize workflow runs
 
-### Online Tools & Utilities
-- **GitHub Actions Status:** [www.githubstatus.com](https://www.githubstatus.com) - Service status monitoring
-- **Action Versions:** [github-actions-up-to-date.vercel.app](https://github-actions-up-to-date.vercel.app) - Check for outdated actions
-- **Workflow Parser:** [rhysd.github.io/actionlint](https://rhysd.github.io/actionlint/) - Online workflow validation
-- **Cron Expression Generator:** [crontab.guru](https://crontab.guru) - Schedule syntax helper
-
-### Security & Best Practices
-- **GitHub Security Lab:** [securitylab.github.com](https://securitylab.github.com) - Security research and guidance
-- **Actions Hardening Guide:** Official security recommendations
-- **Dependabot for Actions:** Automated action version updates
-- **Secret Scanning:** Detect exposed credentials in workflows
-
-### Community & Support
-- **GitHub Community:** GitHub Discussions for actions
-- **Stack Overflow:** `github-actions` tag
-- **Reddit:** r/github and r/devops communities
-- **Discord:** GitHub Community Discord server
-- **Internal Teams:** Azure content automation channel
-
-### Learning Resources
-- **GitHub Learning Lab:** Interactive GitHub Actions courses
-- **GitHub Actions Heroes:** Community showcase and case studies
-- **YouTube Channels:** GitHub, DevOps tutorials, and workflow examples
-- **Blog Posts:** GitHub Blog's Actions category
 
 **Script:**
-"You're not alone in this journey. There's a rich ecosystem of tools, documentation, and community support specifically for GitHub Actions development. For development, actionlint is essential for catching workflow errors before you commit, and the GitHub Actions Toolkit helps if you're building custom actions. The online tools I've listed here solve real problems - checking if your actions are outdated, validating workflow syntax, and understanding cron expressions. For debugging, remember that you can enable detailed logging with the debug secrets we discussed. The GitHub Security Lab provides crucial guidance on securing your workflows, and Dependabot can automatically keep your action versions up to date. Start with the official docs and actionlint for validation, explore the community examples for inspiration, and don't hesitate to use the debugging tools when things don't work as expected. The GitHub Community and Stack Overflow are incredibly responsive for troubleshooting specific issues."
+"There's a rich ecosystem supporting GitHub Actions development. Start with the official documentation and workflow syntax reference - they're comprehensive and searchable. For local testing, nektos/act is essential, and the VS Code extensions provide syntax highlighting and local execution. The Actions Marketplace has thousands of pre-built integrations, and the community starter workflows provide proven patterns you can adapt. These resources will accelerate your development and help you avoid common pitfalls."
 
 **Time: 2 minutes**
 
@@ -2570,7 +2538,7 @@ jobs:
 11. **Artifact sharing:** Build once, deploy everywhere with cross-workflow artifacts
 
 **Script:**
-"Even if you're an experienced GitHub Actions developer, there are powerful features hiding in plain sight. Let me share eleven advanced patterns that will level up your workflows. First, reusable workflows - you can call workflows from other repositories, creating a centralized automation library for your entire organization. Second, the `.github/actions/` folder creates custom reusable components that work exactly like marketplace actions. Third, job outputs enable sophisticated workflow orchestration with intelligent conditional logic. Fourth, `$GITHUB_STEP_SUMMARY` creates beautiful Markdown reports that appear prominently in the Actions UI. Fifth, matrix strategies can dynamically adapt to runtime data from APIs or databases. Now for the performance and security patterns - concurrency controls automatically cancel obsolete runs, saving significant time and money. Environment protection rules provide built-in approval gates for production deployments. The new `$GITHUB_OUTPUT` syntax prevents security vulnerabilities present in the old set-output commands. Caching can reduce your workflow time by 70-90% by avoiding repeated dependency installations. Path filters ensure you only run workflows when relevant files change, critical for monorepos. And finally, workflow artifacts can be shared across separate workflow runs, enabling powerful build-once-deploy-many patterns. These eleven patterns transform GitHub Actions from a simple automation tool into a sophisticated, secure, and efficient orchestration platform."
+"Let me share expert-level patterns that even experienced developers often miss. On the left side, we have organizational automation patterns. First, GitHub supports org-centralized automation through reusable workflows - create a central library that all teams can consume. Second, composite actions in the `.github/actions/` folder let you build custom, reusable components that feel native. Third, workflow orchestration using job outputs and dependencies lets you build sophisticated conditional pipelines. Fourth, rich markdown reports via `$GITHUB_STEP_SUMMARY` make your results visible without digging through logs. Fifth, dynamic matrix strategies can query APIs or databases to adapt execution at runtime. Sixth, concurrency controls automatically cancel obsolete runs, saving minutes and money. And seventh, environment protection rules provide built-in approval gates for production. On the right side are performance optimizations. Cache everything to speed up runs dramatically. Unload unused Docker images to save resources. Share artifacts between workflows to build once and deploy many times. And finally, understand the difference between workflows in `.github/workflows/` and reusable actions in `.github/actions/` - they serve different purposes. These patterns separate basic automation from enterprise-grade orchestration."
 
 **Time: 5 minutes**
 
